@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\MOBA_Game.uproject" />
+    <Filter Include="Source">
+      <UniqueIdentifier>{94B2374C-FD1D-4F8A-A8D9-85E9D2A3DA6C}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\MOBA_Game.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <None Include="..\..\Source\MOBA_GameEditor.Target.cs">
+      <Filter>Source</Filter>
+    </None>
+    <Filter Include="Config">
+      <UniqueIdentifier>{83C29A32-604C-4849-88FC-2EDF1DC2827A}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Config\DefaultEditor.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEditorPerProjectUserSettings.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultEngine.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultGame.ini">
+      <Filter>Config</Filter>
+    </None>
+    <None Include="..\..\Config\DefaultInput.ini">
+      <Filter>Config</Filter>
+    </None>
+    <Filter Include="Source\MOBA_Game">
+      <UniqueIdentifier>{9D0E7D7A-8332-4D75-A643-ACB1922B97AB}</UniqueIdentifier>
+    </Filter>
+    <None Include="..\..\Source\MOBA_Game\MOBA_Game.Build.cs">
+      <Filter>Source\MOBA_Game</Filter>
+    </None>
+    <ClCompile Include="..\..\Source\MOBA_Game\MOBA_Game.cpp">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MOBA_Game\MOBA_Game.h">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MOBA_Game\MOBA_GameCharacter.cpp">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MOBA_Game\MOBA_GameCharacter.h">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MOBA_Game\MOBA_GameGameMode.cpp">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MOBA_Game\MOBA_GameGameMode.h">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClInclude>
+    <ClCompile Include="..\..\Source\MOBA_Game\MOBA_GamePlayerController.cpp">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClCompile>
+    <ClInclude Include="..\..\Source\MOBA_Game\MOBA_GamePlayerController.h">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Source\MOBA_Game\Hero.h">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Source\MOBA_Game\Hero.cpp">
+      <Filter>Source\MOBA_Game</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
