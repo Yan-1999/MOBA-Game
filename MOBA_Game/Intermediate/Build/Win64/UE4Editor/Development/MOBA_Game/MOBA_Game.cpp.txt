@@ -1,2 +1,0 @@
-D:\unreal\MOBA_Game\Intermediate\Build\Win64\UE4Editor\Development\MOBA_Game\Definitions.MOBA_Game.h
-D:\unreal\MOBA_Game\Source\MOBA_Game\MOBA_Game.h
