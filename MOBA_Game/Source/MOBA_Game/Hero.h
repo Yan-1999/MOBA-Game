@@ -6,8 +6,9 @@
 #include "MOBA_GameCharacter.h"
 #include "Hero.generated.h"
 
-/**
- *
+/**<The Hero Class> AHero
+ *Class for heroes in the MOBA game.
+ *This class only contains properties and methods related to game process. Other properties and methods should be in the AMOBA_GameCharacter class.
  */
 UCLASS()
 class MOBA_GAME_API AHero : public AMOBA_GameCharacter
@@ -17,27 +18,35 @@ class MOBA_GAME_API AHero : public AMOBA_GameCharacter
 private:
 	/**Upper bound of hero's current health. Zero value or below is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float max_health_;
+		float max_hp_;
 
 	/**Hero's current HP value. Zero value means death. Minus value or above max is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float cur_health_;
+		float cur_hp_;
 
-	/** Speed of HP Recovery PER SECOND. Can be minus.*/
+	/** Inherent speed of HP Recovery PER SECOND. Minus value or above max is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float re_health_;
+		float re_hp_;
 
 	/**Hero's max MP value. Used as an upper bound of current magic power.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float max_magic_;
+		float max_mp_;
 
 	/**Hero's current MP value. Minus value or above max is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float cur_magic_;
+		float cur_mp_;
 
-	/** Speed of MP Recovery PER SECOND. Can be minus.*/
+	/** Inherent speed of MP Recovery PER SECOND. Minus value or above max is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
-		float re_magic_;
+		float re_mp_;
+
+	/**Minion curren Speed. Minus value is INVAILD.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|speed", meta = (AllowPrivateAccess = "true"))
+		float speed_;
+
+	/**Hero attack frequncy. Minus value is INVAILD.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|speed", meta = (AllowPrivateAccess = "true"))
+		float atk_freq_;
 
 	/** Level of Hero. Used to determine hero's max HP & MP.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|Level", meta = (AllowPrivateAccess = "true"))
@@ -51,20 +60,38 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))
 		int money_;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
+		float drop_money_;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
+		int drop_exp_;
+
 public:
 	AHero();
 
-	/**Art attack. Return value is damage.*/
+	/**Basic functions.*/
+	FORCEINLINE float max_hp() { return max_hp_; }
+	FORCEINLINE float hp() { return cur_hp_; }
+	FORCEINLINE float re_hp() { return re_hp_; }
+	FORCEINLINE float max_mp() { return max_mp_; }
+	FORCEINLINE float mp() { return cur_mp_; }
+	FORCEINLINE float re_mp() { return re_mp_; }
+	FORCEINLINE float speed() { return speed_; }
+	FORCEINLINE int level() { return level_; }
+	FORCEINLINE float exp() { return exp_; }
+	FORCEINLINE float money() { return money_; }
+
+	/**Hero's art attack. Return value is damage.*/
 	float Art();
 
-	/**HP&MP recovery.*/
-	void Cure();
+	/**Hero's HP&MP recovery.*/
+	void Cure(float addtional_hp, float addtional_mp);
 
-	/**HP recovery.*/
-	void Heal();
+	/**Hero's Money gain.*/
+	void Grow(int gain);
 
-	/**Money gain.*/
-	void Grow();
+	/**Buy item*/
+	void Buy();
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
