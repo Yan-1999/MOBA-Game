@@ -1,6 +1,7 @@
 // MOBA project group, SSE, Tonji University. Some rights reserved.
 
 #include "Hero.h"
+#include <utility>
 
 //TODO: Constuctor.
 AHero::AHero()
@@ -8,11 +9,26 @@ AHero::AHero()
 
 }
 
-//TODO: Art function.
-float AHero::Art()
+AHero::AHero(HeroType type, FHeroSkill skill)
+	:type_(type), skill_(skill)
+{
+
+}
+
+//TODO: AD function.
+auto AHero::AD()
 {
 	float damage = 0.0f;
 	return damage;
+
+}
+
+//TODO: Art function.
+auto AHero::AP(FHeroSkill skill)
+{
+	float damage = 0.0f;
+	return damage;
+
 }
 
 //TODO: Cure function.
@@ -21,10 +37,10 @@ void AHero::Cure(float addtional_hp, float addtional_mp)
 
 }
 
-//TODO: Grow function.
-void AHero::Grow(int gain)
+void AHero::Grow(decltype(drop_) gain)
 {
-	money_ += gain;
+	money_ += gain.first;
+	exp_ += gain.second;
 	return;
 }
 

@@ -3,6 +3,7 @@
 
 #include "Minion.h"
 
+//TODO: Constrcters
 // Sets default values
 AMinion::AMinion()
 {
@@ -18,7 +19,8 @@ AMinion::AMinion(MinionType type) :type_(type)
 
 }
 
-float AMinion::attack()
+//TODO: AD function
+auto AMinion::AD()
 {
 	float damage = 0.0f;
 	return damage;
@@ -38,9 +40,9 @@ void AMinion::Tick(float DeltaTime)
 
 }
 
- //Called to bind functionality to input
-void AMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	//Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
+// //Called to bind functionality to input
+//void AMinion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+//{
+//	//Super::SetupPlayerInputComponent(PlayerInputComponent);
+//
+//}
