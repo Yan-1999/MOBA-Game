@@ -79,12 +79,12 @@ public:
 	FORCEINLINE auto hp() { return hp_; }
 	FORCEINLINE auto mp() { return mp_; }
 	FORCEINLINE auto recover() { return recover_; }
+	FORCEINLINE auto drop() { return drop_; }
 	FORCEINLINE float speed() { return speed_; }
 	FORCEINLINE float atk_freq() { return atk_freq_; }
 	FORCEINLINE int level() { return level_; }
-	FORCEINLINE float exp() { return exp_; }
-	FORCEINLINE float money() { return money_; }
-	FORCEINLINE auto drop() { return drop_; }
+	FORCEINLINE int exp() { return exp_; }
+	FORCEINLINE int money() { return money_; }
 
 	//Hero's actural damage. Return value is damage.
 	auto AD();
@@ -111,7 +111,6 @@ private:
 	/**Hero's skill list.*/
 	FHeroSkill skill_;
 
-
 	/**Minion curren Speed. Minus value is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|Speed", meta = (AllowPrivateAccess = "true"))
 		float speed_;
@@ -131,6 +130,5 @@ private:
 	/**Money owned by hero. Minus value is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))
 		int money_;
-
 
 };
