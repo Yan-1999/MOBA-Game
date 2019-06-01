@@ -10,68 +10,90 @@
 #include "Runtime/Engine/Classes/Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+#include "TimerManager.h"
 
 //TODO: Constuctor.
 AHero::AHero()
-	:range_(CreateDefaultSubobject<USphereComponent>(TEXT("range")))
+	:ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("AD Range")))
 {
-	range_->AttachTo(RootComponent);
-	range_->SetSphereRadius(200.0f);
-	range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnHit);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
+	//set size of skill_
+	skill_.SetNum(4);
+	//initialize ad_range_
+	ad_range_->AttachTo(RootComponent);
+	ad_range_->SetSphereRadius(100.0f);
+	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
+	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
 }
 
 AHero::AHero(HeroType Type, decltype(skill_) arrSkill)
-	: type_(Type), skill_(arrSkill), range_(CreateDefaultSubobject<USphereComponent>(TEXT("range")))
-
+	: type_(Type), skill_(arrSkill),
+	ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("range")))
 {
-	range_->AttachTo(RootComponent);
-	range_->SetSphereRadius(100.0f);
-	range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnHit);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	//set size of skill_
+	skill_.SetNum(4);
+	//initialize ad_range_
+	ad_range_->AttachTo(RootComponent);
+	ad_range_->SetSphereRadius(100.0f);
+	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
+	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
 
-}
-
-float DegAngle(const FVector& Lhs, const FVector& Rhs)
-{
-	return UKismetMathLibrary::DegAcos(FVector::DotProduct(Lhs, Rhs) / (Lhs.Size() * Rhs.Size()));
 }
 
 AActor* AHero::ChoseUnit(AActor* pUnit)
 {
-	if (Cast<AHero>(pUnit) || Cast<AMinion>(pUnit) || Cast<AMonster>(pUnit) || Cast<ATurret>(pUnit))
+	if ((Cast<AHero>(pUnit) || Cast<AMinion>(pUnit) || Cast<AMonster>(pUnit) || Cast<ATurret>(pUnit)) && pUnit != this)
 	{
 		chosen_unit_ = pUnit;
+		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, pUnit->GetName());
+		if (pUnit->IsOverlappingActor(this))
+		{
+			GetWorldTimerManager().SetTimer(ad_timer_, this, &AHero::ChosenUnitAD, ad_freq_, true);
+		}
 	}
 	else
 	{
 		chosen_unit_ = nullptr;
+		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, TEXT("Cancel"));
+		if (ad_timer_.IsValid())
+		{
+			GetWorldTimerManager().ClearTimer(ad_timer_);
+		}
 	}
 	return chosen_unit_;
 }
 
 //TODO: AD function.
-auto AHero::AD(AActor* pUnit, float fDamageAmount, float DegRange)
+float AHero::AD(AActor* pUnit, float fDamageAmount, float DegRange)
 {
-	FVector vFacing = GetActorForwardVector(), vLocationDiff = pUnit->GetActorLocation() - GetActorLocation();
-	if (DegAngle(vFacing, vLocationDiff) <= DegRange)
-	{
-		UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, UDamageType::StaticClass());
-		return fDamageAmount;
-	}
-	return 0.0f;
+	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, UDamageType::StaticClass());
+	return fDamageAmount;
 }
 
-void AHero::OnHit(UPrimitiveComponent* OverLapComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AHero::BeginOverlap(UPrimitiveComponent* OverLapComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	
+
 	if (OtherActor == chosen_unit_)
 	{
-		AD(OtherActor);
+		if (!ad_timer_.IsValid())
+		{
+			GetWorldTimerManager().SetTimer(ad_timer_, this, &AHero::ChosenUnitAD, ad_freq_, true);
+		}
 	}
+}
+
+void AHero::EndOverlap(UPrimitiveComponent* OverLapComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (ad_timer_.IsValid())
+	{
+		GetWorldTimerManager().ClearTimer(ad_timer_);
+	}
+}
+
+void AHero::ChosenUnitAD()
+{
+	AD(chosen_unit_);
 }
 
 //TODO: Art function.
@@ -87,13 +109,7 @@ auto AHero::AP(FHeroSkill& Skill)
 
 }
 
-bool AHero::ShouldTakeDamage
-(
-	float Damage,
-	FDamageEvent const& DamageEvent,
-	AController* EventInstigator,
-	AActor* DamageCauser
-)
+bool AHero::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	if (cur_hp_ <= 0)
 	{

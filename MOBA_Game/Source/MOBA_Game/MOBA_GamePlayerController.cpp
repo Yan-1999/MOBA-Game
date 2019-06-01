@@ -76,11 +76,14 @@ void AMOBA_GamePlayerController::MoveToMouseCursor()
 			{
 				MyHero->ChoseUnit(Hit.GetActor());
 				UAIBlueprintHelperLibrary::SimpleMoveToActor(this, SelectedActor);
-				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, MyHero->chosen_unit()->GetName());
 			}
 		}
 		else if (Hit.bBlockingHit)
 		{
+			if (AHero * MyHero = Cast<AHero>(GetPawn()))
+			{
+				MyHero->ChoseUnit(nullptr);
+			}
 			// We hit something, move there
 			SetNewMoveDestination(Hit.ImpactPoint);
 		}

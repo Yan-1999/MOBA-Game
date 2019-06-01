@@ -83,14 +83,12 @@ private:
 
 	/**Hero's skill list.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Skill", meta = (AllowPrivateAccess = "true"))
-		TArray<FHeroSkill> skill_;
-
+		TArray <FHeroSkill> skill_;
 
 public:
 	//Constucters
 	AHero();
 	AHero(HeroType, decltype(skill_));
-
 
 	//Basic return functions.
 	FORCEINLINE float max_hp() { return max_hp_; }
@@ -100,7 +98,7 @@ public:
 	FORCEINLINE float mp() { return cur_mp_; }
 	FORCEINLINE float re_mp() { return re_mp_; }
 	FORCEINLINE float speed() { return speed_; }
-	FORCEINLINE float atk_freq() { return atk_freq_; }
+	FORCEINLINE float atk_freq() { return ad_freq_; }
 	FORCEINLINE int level() { return level_; }
 	FORCEINLINE int exp() { return exp_; }
 	FORCEINLINE int money() { return money_; }
@@ -108,14 +106,20 @@ public:
 	FORCEINLINE int drop_exp() { return drop_exp_; }
 	FORCEINLINE AActor* chosen_unit() { return chosen_unit_; }
 
-	/**Called by MOBA_GamePlayerController, edit the unit chosen by the hero.*/
+	//Called by MOBA_GamePlayerController, edit the unit chosen by the hero.
 	AActor* ChoseUnit(AActor* pUnit);
 
 	//Hero's actural damage. Return value is damage.
-	auto AD(AActor* pUnit, float fDamage = 10.0f, float DegRange = 5.0f);
+	UFUNCTION()
+		float AD(AActor* pUnit, float fDamage = 10.0f, float DegRange = 5.0f);
 
 	UFUNCTION()
-	void OnHit(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void EndOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void ChosenUnitAD();
 
 	//Hero's art attack. Return value is damage.
 	auto AP(FHeroSkill& Skill);
@@ -136,6 +140,7 @@ public:
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
+
 
 private:
 	/**Upper bound of hero's current health. Zero value or below is INVAILD.*/
@@ -166,10 +171,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Speed", meta = (AllowPrivateAccess = "true"))
 		float speed_;
 
-	/**Hero attack frequncy. Minus value is INVAILD.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Speed", meta = (AllowPrivateAccess = "true"))
-		float atk_freq_;
-
 	/** Level of Hero. Used to determine hero's max HP & MP.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Level", meta = (AllowPrivateAccess = "true"))
 		int level_;
@@ -182,16 +183,27 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))
 		int money_;
 
+	/**Money dropped when died.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
 		int drop_money_;
 
+	/**Exp dropped when died.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
 		int drop_exp_;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Attack", meta = (AllowPrivateAccess = "true"))
-		AActor* chosen_unit_;
+	/**Unit chosed by hero. Used when hero decided to apply AD.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+		AActor* chosen_unit_ = nullptr;
 
+	/**Sphere collider triggering AD. Symbolizing AD range.*/
 	UPROPERTY(EditAnywhere, Category = Collision)
-		class USphereComponent* range_;
+		class USphereComponent* ad_range_;
 
+	/**Hero attack frequncy. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Attack", meta = (AllowPrivateAccess = "true"))
+		float ad_freq_;
+
+	/**AD timer.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+		FTimerHandle ad_timer_;
 };
