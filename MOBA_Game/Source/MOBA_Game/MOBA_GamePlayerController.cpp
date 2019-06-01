@@ -1,11 +1,17 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "MOBA_GamePlayerController.h"
+#include "Hero.h"
+#include "Minion.h"
+#include "Monster.h"
+#include "Turret.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "MOBA_GameCharacter.h"
 #include "Engine/World.h"
+
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 AMOBA_GamePlayerController::AMOBA_GamePlayerController()
 {
@@ -48,7 +54,7 @@ void AMOBA_GamePlayerController::MoveToMouseCursor()
 {
 	if (UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled())
 	{
-		if (AMOBA_GameCharacter* MyPawn = Cast<AMOBA_GameCharacter>(GetPawn()))
+		if (AMOBA_GameCharacter * MyPawn = Cast<AMOBA_GameCharacter>(GetPawn()))
 		{
 			if (MyPawn->GetCursorToWorld())
 			{
@@ -60,9 +66,20 @@ void AMOBA_GamePlayerController::MoveToMouseCursor()
 	{
 		// Trace to see what is under the mouse cursor
 		FHitResult Hit;
-		GetHitResultUnderCursor(ECC_Visibility, false, Hit);
+		GetHitResultUnderCursor(ECC_Pawn, false, Hit);
+		AActor* SelectedActor = Hit.GetActor();
 
-		if (Hit.bBlockingHit)
+		//If a unit is selected, move to it.
+		if (Cast<AHero>(SelectedActor) || Cast<AMinion>(SelectedActor) || Cast<AMonster>(SelectedActor) || Cast<ATurret>(SelectedActor))
+		{
+			if (AHero * MyHero = Cast<AHero>(GetPawn()))
+			{
+				MyHero->ChoseUnit(Hit.GetActor());
+				UAIBlueprintHelperLibrary::SimpleMoveToActor(this, SelectedActor);
+				GEngine->AddOnScreenDebugMessage(0, 2.0f, FColor::Blue, MyHero->chosen_unit()->GetName());
+			}
+		}
+		else if (Hit.bBlockingHit)
 		{
 			// We hit something, move there
 			SetNewMoveDestination(Hit.ImpactPoint);

@@ -80,3 +80,23 @@ private:
 	::std::pair<int, int> drop_;
 
 };
+
+UCLASS()
+class AWeaponActor :public AActor
+{
+	GENERATED_BODY()
+
+public:
+	FORCEINLINE class UBoxComponent* GetWeaponCollision() { return WeaponCollision; }
+	void ActiveAttack();
+	void DeactiveAttack();
+	void OnHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	bool bCanAttack;
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|type", meta = (AllowPrivateAccess = "true"))
+		float damage;
+	UPROPERTY(EditAnywhere, Category = Collision)
+		class UBoxComponent* WeaponCollision;
+
+};
