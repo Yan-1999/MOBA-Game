@@ -1,44 +1,69 @@
 // MOBA project group, SSE, Tonji University. Some rights reserved.
 
 #include "Hero.h"
+
 #include "Minion.h"
 #include "Monster.h"
 #include "Turret.h"
+
+#include "Runtime/Core/Public/Containers/Array.h"
+#include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
+#include "Runtime/Engine/Classes/Components/SphereComponent.h"
+#include "Runtime/Engine/Classes/Engine/EngineTypes.h"
+#include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/DamageType.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
-#include "Runtime/Engine/Classes/Components/SphereComponent.h"
-#include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
-#include "Runtime/Engine/Classes/Engine/Engine.h"
 #include "TimerManager.h"
+
+#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 //TODO: Constuctor.
 AHero::AHero()
-	:ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("AD Range")))
+	:cur_hp_(max_hp_), cur_mp_(max_mp_),
+	ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("AD Range")))
 {
 	//set size of skill_
-	skill_.SetNum(4);
+	abilities_.SetNum(4);
+
 	//initialize ad_range_
-	ad_range_->AttachTo(RootComponent);
+	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 	ad_range_->SetSphereRadius(100.0f);
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
+
+	//speed
+	GetCharacterMovement()->MaxWalkSpeed = speed_;
+
 }
 
-AHero::AHero(HeroType Type, decltype(skill_) arrSkill)
-	: type_(Type), skill_(arrSkill),
+AHero::AHero(HeroType Type, decltype(abilities_) arrSkill)
+	:type_(Type), abilities_(arrSkill), cur_hp_(max_hp_), cur_mp_(max_mp_),
 	ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("range")))
 {
 	//set size of skill_
-	skill_.SetNum(4);
+	abilities_.SetNum(4);
+
 	//initialize ad_range_
-	ad_range_->AttachTo(RootComponent);
+	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 	ad_range_->SetSphereRadius(100.0f);
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
 
+	//speed
+	GetCharacterMovement()->MaxWalkSpeed = speed_;
+}
+
+void AHero::SetupPlayerInputComponent(UInputComponent* InputComponent)
+{
+
+	//ability keys
+	InputComponent->BindAction("Ability_Q", IE_Pressed, this, &AHero::Ability_Q);
+	InputComponent->BindAction("Ability_W", IE_Pressed, this, &AHero::Ability_W);
+	InputComponent->BindAction("Ability_E", IE_Pressed, this, &AHero::Ability_E);
+	InputComponent->BindAction("Ability_R", IE_Pressed, this, &AHero::Ability_R);
 }
 
 AActor* AHero::ChoseUnit(AActor* pUnit)
@@ -97,45 +122,89 @@ void AHero::ChosenUnitAD()
 }
 
 //TODO: Art function.
-auto AHero::AP(FHeroSkill& Skill)
+auto AHero::AP(FHeroAbility& Ability)
 {
 	float fDamageAmount = 0.0f;
-	if (Skill.cur_cd_ > 0)
+	if (Ability.cur_cd_ > 0 || cur_mp_ < Ability.mp_needed_)
 	{
-		return -1.0f;
+		GEngine->AddOnScreenDebugMessage(5, 1.0f, FColor::Black, "Cooldown!");
+		return 0.0f;
 	}
-	Skill.cur_cd_ = Skill.max_cd_;
-	return fDamageAmount;
-
+	else
+	{
+		if (Ability.aoe_)
+		{
+			TArray<AActor*>Ignores;
+			Ignores.Add(this);
+			UGameplayStatics::ApplyRadialDamage(this, Ability.damage_, GetActorLocation(), Ability.range_, UDamageType::StaticClass(), Ignores, this);
+		}
+		else
+		{
+			TArray<FHitResult> LinearHitResults;
+			UKismetSystemLibrary::LineTraceMulti(this, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Ability.range_, TraceTypeQuery1, false, TArray<AActor*>(), EDrawDebugTrace::ForDuration, LinearHitResults, true, FLinearColor::Red, FLinearColor::Red);
+			for (auto i : LinearHitResults)
+			{
+				if (i.GetActor())
+				{
+					GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Blue, i.GetActor()->GetName());
+					UGameplayStatics::ApplyDamage(i.GetActor(), Ability.damage_, GetController(), this, UDamageType::StaticClass());
+				}
+			}
+		}
+		cur_mp_ -= Ability.mp_needed_;
+		Ability.cur_cd_ = Ability.max_cd_;
+		return fDamageAmount;
+	}
 }
 
-bool AHero::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+void AHero::Ability_Q()
 {
-	if (cur_hp_ <= 0)
-	{
-		return false;
-	}
-	return true;
+	AP(abilities_[0]);
 }
 
-float AHero::TakeDamage
-(
-	float DamageAmount,
-	FDamageEvent const& DamageEvent,
-	AController* EventInstigator,
-	AActor* DamageCauser
-)
+void AHero::Ability_W()
+{
+	AP(abilities_[1]);
+}
+
+void AHero::Ability_E()
+{
+	AP(abilities_[2]);
+}
+
+void AHero::Ability_R()
+{
+	AP(abilities_[3]);
+}
+
+//bool AHero::ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+//{
+//	if (cur_hp_ <= 0)
+//	{
+//		return false;
+//	}
+//	return true;
+//}
+
+float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	float fActualDamage;
-	if (ShouldTakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser))
+	//if (ShouldTakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser))
 	{
+		DamageAmount *= (1 - ad_resist_);
+		//still alive
 		if (cur_hp_ - DamageAmount > 0.0f)
 		{
 			cur_hp_ -= DamageAmount;
 			fActualDamage = DamageAmount;
 		}
+		//dead
 		else
 		{
+			if (AHero * Killer = Cast<AHero>(DamageCauser))
+			{
+				Killer->Grow(drop_money_, drop_exp_);
+			}
 			fActualDamage = cur_hp_;
 			cur_hp_ = 0.0f;
 		}
@@ -173,9 +242,14 @@ void AHero::Grow(int MoneyGain, int ExpGain)
 }
 
 //TODO: Buy function.
-void AHero::Buy()
+void AHero::Buy(int ItemID)
 {
+	items_.Add(ItemID);
+}
 
+void AHero::Sell(int ItemID)
+{
+	items_.RemoveSingle(ItemID);
 }
 
 //TODO: Tick function.
@@ -185,7 +259,7 @@ void AHero::Tick(float DeltaSeconds)
 	Cure(DeltaSeconds);
 
 	//renew skill cooldown
-	for (auto& i : skill_)
+	for (auto& i : abilities_)
 	{
 		if (i.cur_cd_ - DeltaSeconds > 0.0f)
 		{

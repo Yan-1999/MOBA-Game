@@ -33,22 +33,19 @@ enum class HeroType :uint8
 */
 
 USTRUCT(BlueprintType)
-struct FHeroSkill
+struct FHeroAbility
 {
 	GENERATED_USTRUCT_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Type", meta = (AllowPrivateAccess = "true"))
+		bool aoe_;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Type", meta = (AllowPrivateAccess = "true"))
+		float range_;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAccess = "true"))
 		float stablize_;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAccess = "true"))
-		float silence_;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAccess = "true"))
-		float dizziness_;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effect", meta = (AllowPrivateAccess = "true"))
-		float knock_;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damage", meta = (AllowPrivateAccess = "true"))
 		float damage_;
@@ -83,12 +80,12 @@ private:
 
 	/**Hero's skill list.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Skill", meta = (AllowPrivateAccess = "true"))
-		TArray <FHeroSkill> skill_;
+		TArray <FHeroAbility> abilities_;
 
 public:
 	//Constucters
 	AHero();
-	AHero(HeroType, decltype(skill_));
+	AHero(HeroType, decltype(abilities_));
 
 	//Basic return functions.
 	FORCEINLINE float max_hp() { return max_hp_; }
@@ -97,20 +94,25 @@ public:
 	FORCEINLINE float max_mp() { return max_mp_; }
 	FORCEINLINE float mp() { return cur_mp_; }
 	FORCEINLINE float re_mp() { return re_mp_; }
+	FORCEINLINE float ad_resist() { return ad_resist_; }
+	//FORCEINLINE float ap_resist() { return ap_resist_; }
 	FORCEINLINE float speed() { return speed_; }
 	FORCEINLINE float atk_freq() { return ad_freq_; }
 	FORCEINLINE int level() { return level_; }
 	FORCEINLINE int exp() { return exp_; }
 	FORCEINLINE int money() { return money_; }
+	FORCEINLINE TArray<int> armour() { return items_; }
 	FORCEINLINE int drop_money() { return drop_money_; }
 	FORCEINLINE int drop_exp() { return drop_exp_; }
 	FORCEINLINE AActor* chosen_unit() { return chosen_unit_; }
+
+	void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 	//Called by MOBA_GamePlayerController, edit the unit chosen by the hero.
 	AActor* ChoseUnit(AActor* pUnit);
 
 	//Hero's actural damage. Return value is damage.
-	UFUNCTION()
+	UFUNCTION(VisiableAnywhere, BlueprintCallable, Category = "Damage")
 		float AD(AActor* pUnit, float fDamage = 10.0f, float DegRange = 5.0f);
 
 	UFUNCTION()
@@ -122,12 +124,19 @@ public:
 	void ChosenUnitAD();
 
 	//Hero's art attack. Return value is damage.
-	auto AP(FHeroSkill& Skill);
+	UFUNCTION(VisiableAnywhere, BlueprintCallable, Category = "Damage")
+		auto AP(FHeroAbility& Ability);
 
-	//Override the APawn::ShouldTakeDamage(). Return if hero should take the damage.
-	bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+	void Ability_Q();
+	void Ability_W();
+	void Ability_E();
+	void Ability_R();
 
-	float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+	////Override the APawn::ShouldTakeDamage(). Return if hero should take the damage.
+	//bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+
+	UFUNCTION(VisiableAnywhere, BlueprintCallable, Category = "Damage")
+		float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
 
 	//Hero's HP&MP recovery.
 	void Cure(float DeltaSeconds, float addtional_hp, float addtional_mp);
@@ -136,11 +145,15 @@ public:
 	void Grow(int, int);
 
 	//Buy item.
-	void Buy();
+	UFUNCTION(VisiableAnywhere, BlueprintCallable, Category = "Shop")
+		void Buy(int ItemID);
+
+	//Buy item.
+	UFUNCTION(VisiableAnywhere, BlueprintCallable, Category = "Shop")
+		void Sell(int ItemID);
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
-
 
 private:
 	/**Upper bound of hero's current health. Zero value or below is INVAILD.*/
@@ -151,7 +164,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
 		float cur_hp_;
 
-	/** Inherent speed of HP Recovery PER SECOND. Minus value or above max is INVAILD.*/
+	/**Inherent speed of HP Recovery PER SECOND. Minus value or above max is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
 		float re_hp_;
 
@@ -163,9 +176,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
 		float cur_mp_;
 
-	/** Inherent speed of MP Recovery PER SECOND. Minus value or above max is INVAILD.*/
+	/**Inherent speed of MP Recovery PER SECOND. Minus value or above max is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
 		float re_mp_;
+
+	/**Hero's resistance to AD. (1 - ad_resist_) is percentage of actual damage of AD. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Resistance", meta = (AllowPrivateAccess = "true"))
+		float ad_resist_;
+
+	///**Hero's resistance to AP. (1 - ad_resist_) is percentage of actual damage of AP. Minus value is INVAILD.*/
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Resistance", meta = (AllowPrivateAccess = "true"))
+	//	float ap_resist_;
 
 	/**Hero's curren Speed. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Speed", meta = (AllowPrivateAccess = "true"))
@@ -182,6 +203,10 @@ private:
 	/**Money owned by hero. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))
 		int money_;
+
+	/**Hero's armour array. Use int as ID.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|Item", meta = (AllowPrivateAccess = "true"))
+		TArray<int> items_;
 
 	/**Money dropped when died.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
