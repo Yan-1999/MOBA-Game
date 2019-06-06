@@ -14,6 +14,3 @@ class AMOBA_GameGameMode : public AGameModeBase
 public:
 	AMOBA_GameGameMode();
 };
-
-
-

@@ -1,5 +1,7 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
+// Edited by MOBA project group, SSE, Tonji University. Some rights reserved.
+
 #include "MOBA_GamePlayerController.h"
 
 #include "Hero.h"
@@ -12,6 +14,10 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "MOBA_GameCharacter.h"
 #include "Engine/World.h"
+#include "GameFramework/PlayerState.h"
+#include "TimerManager.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
@@ -131,4 +137,37 @@ void AMOBA_GamePlayerController::OnSetDestinationReleased()
 {
 	// clear flag to indicate we should stop updating the destination
 	bMoveToMouseCursor = false;
+}
+
+void AMOBA_GamePlayerController::SetPawn(APawn* InPawn)
+{
+	Super::SetPawn(InPawn);
+	if (InPawn)
+	{
+		if (AHero * MyHero = Cast<AHero>(InPawn))
+		{
+			MyHero->OnDeath.AddUniqueDynamic(this, &AMOBA_GamePlayerController::OnMyHeroDeath);
+		}
+	}
+}
+
+void AMOBA_GamePlayerController::OnMyHeroDeath()
+{
+	PlayerState->bIsSpectator = true;
+	ChangeState(NAME_Spectating);
+	GetWorldTimerManager().SetTimer(respawn_timer_, this, &AMOBA_GamePlayerController::MyHeroRespawn, respawn_time_, false);
+}
+
+void AMOBA_GamePlayerController::MyHeroRespawn()
+{
+	GetWorldTimerManager().ClearTimer(respawn_timer_);
+	TArray<AActor*> PlayerStarts;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), PlayerStarts);
+	AActor* SpawnTarget = PlayerStarts[0];
+	if (MyHero == nullptr)return;
+	MyHero->Respawn();
+	MyHero->SetActorTransform(SpawnTarget->GetTransform());
+	Possess(MyHero);
+	PlayerState->bIsSpectator = false;
+	ChangeState(NAME_Playing);
 }

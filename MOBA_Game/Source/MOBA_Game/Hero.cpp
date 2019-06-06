@@ -5,9 +5,11 @@
 #include "Minion.h"
 #include "Monster.h"
 #include "Turret.h"
+#include "MOBA_GameGameState.h"
 
 #include "Runtime/Core/Public/Containers/Array.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
+#include "Runtime/Engine/Classes/Components/DecalComponent.h"
 #include "Runtime/Engine/Classes/Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Engine/EngineTypes.h"
 #include "Runtime/Engine/Classes/GameFramework/CharacterMovementComponent.h"
@@ -17,6 +19,11 @@
 #include "TimerManager.h"
 
 #include "Runtime/Engine/Classes/Engine/Engine.h"
+
+/**Damage Types:*/
+const TSubclassOf<UDamageType> ActualDamage = UDamageType::StaticClass();
+const TSubclassOf<UDamageType> AbilityDamage = UAbilityDamageType::StaticClass();
+const TSubclassOf<UDamageType> Healing = UHealType::StaticClass();
 
 //TODO: Constuctor.
 AHero::AHero()
@@ -92,7 +99,7 @@ AActor* AHero::ChoseUnit(AActor* pUnit)
 //TODO: AD function.
 float AHero::AD(AActor* pUnit, float fDamageAmount, float DegRange)
 {
-	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, UDamageType::StaticClass());
+	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, ActualDamage);
 	return fDamageAmount;
 }
 
@@ -122,7 +129,7 @@ void AHero::ChosenUnitAD()
 }
 
 //TODO: Art function.
-auto AHero::AP(FHeroAbility& Ability)
+float AHero::AP(FHeroAbility& Ability)
 {
 	float fDamageAmount = 0.0f;
 	if (Ability.cur_cd_ > 0 || cur_mp_ < Ability.mp_needed_)
@@ -132,27 +139,34 @@ auto AHero::AP(FHeroAbility& Ability)
 	}
 	else
 	{
+		FVector vLocation = GetActorLocation();
+		TArray<AActor*>Ignores;
+		Ignores.Add(this);
 		if (Ability.aoe_)
 		{
-			TArray<AActor*>Ignores;
-			Ignores.Add(this);
-			UGameplayStatics::ApplyRadialDamage(this, Ability.damage_, GetActorLocation(), Ability.range_, UDamageType::StaticClass(), Ignores, this);
+			UGameplayStatics::ApplyRadialDamage(this, Ability.damage_, vLocation, Ability.range_, AbilityDamage, Ignores, this);
 		}
 		else
 		{
+			FHitResult Hit;
 			TArray<FHitResult> LinearHitResults;
-			UKismetSystemLibrary::LineTraceMulti(this, GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Ability.range_, TraceTypeQuery1, false, TArray<AActor*>(), EDrawDebugTrace::ForDuration, LinearHitResults, true, FLinearColor::Red, FLinearColor::Red);
-			for (auto i : LinearHitResults)
+			if (APlayerController * pController = Cast<APlayerController>(GetController()))
 			{
-				if (i.GetActor())
+				pController->GetHitResultUnderCursor(ECC_Pawn, false, Hit);
+				FVector vCursor = Hit.ImpactPoint - vLocation;
+				UKismetSystemLibrary::LineTraceMulti(this, vLocation, vLocation + (vCursor.GetSafeNormal2D()) * Ability.range_, TraceTypeQuery1, false, TArray<AActor*>(), EDrawDebugTrace::ForDuration, LinearHitResults, true, FLinearColor::Red, FLinearColor::Red);
+				for (auto i : LinearHitResults)
 				{
-					GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Blue, i.GetActor()->GetName());
-					UGameplayStatics::ApplyDamage(i.GetActor(), Ability.damage_, GetController(), this, UDamageType::StaticClass());
+					if (i.GetActor())
+					{
+						GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Blue, i.GetActor()->GetName());
+						UGameplayStatics::ApplyDamage(i.GetActor(), Ability.damage_, GetController(), this, AbilityDamage);
+					}
 				}
 			}
+			cur_mp_ -= Ability.mp_needed_;
+			Ability.cur_cd_ = Ability.max_cd_;
 		}
-		cur_mp_ -= Ability.mp_needed_;
-		Ability.cur_cd_ = Ability.max_cd_;
 		return fDamageAmount;
 	}
 }
@@ -191,9 +205,18 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 	float fActualDamage;
 	//if (ShouldTakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser))
 	{
-		DamageAmount *= (1 - ad_resist_);
+		if (DamageEvent.DamageTypeClass == ActualDamage)
+		{
+			DamageAmount *= (1 - ad_resist_);
+			GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, TEXT("isAD"));
+		}
+		else if (DamageEvent.DamageTypeClass == AbilityDamage)
+		{
+			DamageAmount *= (1 - ap_resist_);
+			GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, TEXT("isAP"));
+		}
 		//still alive
-		if (cur_hp_ - DamageAmount > 0.0f)
+		if (cur_hp_ - DamageAmount >= 0.0f)
 		{
 			cur_hp_ -= DamageAmount;
 			fActualDamage = DamageAmount;
@@ -204,6 +227,7 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 			if (AHero * Killer = Cast<AHero>(DamageCauser))
 			{
 				Killer->Grow(drop_money_, drop_exp_);
+				OnDeath.Broadcast();
 			}
 			fActualDamage = cur_hp_;
 			cur_hp_ = 0.0f;
@@ -270,4 +294,8 @@ void AHero::Tick(float DeltaSeconds)
 			i.cur_cd_ = 0.0f;
 		}
 	}
+}
+
+void AHero::Respawn()
+{
 }
