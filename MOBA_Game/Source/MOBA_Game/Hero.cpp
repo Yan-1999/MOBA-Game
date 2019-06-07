@@ -6,6 +6,7 @@
 #include "Monster.h"
 #include "Turret.h"
 #include "MOBA_GameGameState.h"
+#include "MOBA_GamePlayerController.h"
 
 #include "Runtime/Core/Public/Containers/Array.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
@@ -51,7 +52,7 @@ AHero::AHero()
 
 }
 
-AHero::AHero(HeroType Type, decltype(abilities_) arrSkill)
+AHero::AHero(EHeroType Type, decltype(abilities_) arrSkill)
 	:type_(Type), abilities_(arrSkill), cur_hp_(max_hp_), cur_mp_(max_mp_),
 	ad_range_(CreateDefaultSubobject<USphereComponent>(TEXT("range")))
 {
@@ -230,6 +231,10 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 		{
 			if (AHero * Killer = Cast<AHero>(DamageCauser))
 			{
+				if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+				{
+					MyGameState->Kill(Killer, this);
+				}
 				Killer->Grow(drop_money_, drop_exp_);
 			}
 			GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Red, TEXT("AboutDead"));
@@ -248,7 +253,11 @@ void AHero::Death()
 	{
 		GEngine->AddOnScreenDebugMessage(9, 1.0f, FColor::Red, TEXT("IsDead"));
 		MyGameState->Leave(this);
-		OnDeath.Broadcast();
+		//OnDeath.Broadcast();
+		if (AMOBA_GamePlayerController * MyController = Cast<AMOBA_GamePlayerController>(GetController()))
+		{
+			MyController->OnMyHeroDeath();
+		}
 	}
 }
 
@@ -309,9 +318,22 @@ void AHero::Tick(float DeltaSeconds)
 			i.cur_cd_ = 0.0f;
 		}
 	}
+	if (cur_hp_ < 0)
+	{
+		Death();
+	}
 }
 
-void AHero::Respawn()
+void AHero::Respawn(ESide Side)
 {
-	//Join(this,)
+	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+	{
+		MyGameState->Join(this, Side);
+		cur_hp_ = max_hp_;
+		cur_mp_ = max_mp_;
+		for (auto i : abilities_)
+		{
+			i.cur_cd_ = i.max_cd_;
+		}
+	}
 }

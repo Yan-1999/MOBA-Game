@@ -154,6 +154,7 @@ void AMOBA_GamePlayerController::SetPawn(APawn* InPawn)
 void AMOBA_GamePlayerController::OnMyHeroDeath()
 {
 	GEngine->AddOnScreenDebugMessage(8, 1.0f, FColor::Red, TEXT("Dead"));
+	MyHero = Cast<AHero>(GetPawn());
 	PlayerState->bIsSpectator = true;
 	ChangeState(NAME_Spectating);
 	GetWorldTimerManager().SetTimer(respawn_timer_, this, &AMOBA_GamePlayerController::MyHeroRespawn, respawn_time_, false);
@@ -169,11 +170,23 @@ void AMOBA_GamePlayerController::MyHeroRespawn()
 		AActor* SpawnTarget = PlayerStarts[0];
 		if (MyHero)
 		{
-			MyHero->Respawn();
-			MyHero->SetActorTransform(SpawnTarget->GetTransform());
+			MyHero->Respawn(side_);
 			Possess(MyHero);
 			PlayerState->bIsSpectator = false;
 			ChangeState(NAME_Playing);
 		}
+	}
+}
+
+void AMOBA_GamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	if (GetPawn())
+	{
+		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "have");
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "no");
 	}
 }

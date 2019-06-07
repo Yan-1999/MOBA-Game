@@ -8,6 +8,8 @@
 #include "GameFramework/PlayerController.h"
 #include "MOBA_GamePlayerController.generated.h"
 
+enum class ESide :uint8;
+
 UCLASS()
 class AMOBA_GamePlayerController : public APlayerController
 {
@@ -43,14 +45,19 @@ protected:
 
 	virtual void SetPawn(APawn* InPawn)override;
 
+public:
 	void OnMyHeroDeath();
 
 	void MyHeroRespawn();
 
+	virtual void BeginPlay()override;
+
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties", meta = (AllowPrivateAccess = "true"))
+		ESide side_;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Respawn", meta = (AllowPrivateAccess = "true"))
-		float respawn_time_ = 5.0f;
+		float respawn_time_ = 1.0f;
 
 	FTimerHandle respawn_timer_;
 

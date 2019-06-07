@@ -9,7 +9,7 @@
 #include "MOBA_GameGameState.generated.h"
 
 UENUM(BlueprintType)
-enum class Side :uint8
+enum class ESide :uint8
 {
 	RED = 0 UMETA(DisplayName = "RED"),
 	BLUE = 1 UMETA(DisplayName = "BLUE"),
@@ -23,7 +23,8 @@ struct FGroup
 	GENERATED_USTRUCT_BODY()
 
 public:
-	Side side_;
+	ESide side_;
+	int score_ = 0;
 	TArray<class AHero*>heroes_;
 	TArray<class AMinion*>minions_;
 	TArray<class ATurret*>turrets_;
@@ -40,13 +41,15 @@ class MOBA_GAME_API AMOBA_GameGameState : public AGameStateBase
 public:
 	AMOBA_GameGameState();
 
-	bool Join(AActor* const pUnit, Side side);
+	bool Join(AActor* const pUnit, ESide side);
 
 	void Leave(AActor* const pUnit);
 
-	Side IsInSide(const AActor* const pUnit);
+	ESide IsInSide(const AActor* const pUnit);
 
 	bool IsSameSide(const AActor* const pLhs, const AActor* const pRhs);
+
+	void Kill(AActor* pKiller, AActor* pKilled);
 
 private:
 	TArray<FGroup> groups_;

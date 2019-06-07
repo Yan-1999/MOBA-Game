@@ -16,7 +16,7 @@ AMOBA_GameGameState::AMOBA_GameGameState()
 	groups_.SetNum(GROUPNUM);
 }
 
-bool AMOBA_GameGameState::Join(AActor* const pUnit, Side side)
+bool AMOBA_GameGameState::Join(AActor* const pUnit, ESide side)
 {
 	if (AHero * const pHero = Cast<AHero>(pUnit))
 	{
@@ -58,11 +58,11 @@ void AMOBA_GameGameState::Leave(AActor* const pUnit)
 	}
 }
 
-Side AMOBA_GameGameState::IsInSide(const AActor* const pUnit)
+ESide AMOBA_GameGameState::IsInSide(const AActor* const pUnit)
 {
 	if (Cast<AMonster>(pUnit))
 	{
-		return Side(2);
+		return ESide(2);
 	}
 	for (size_t i = 0; i < GROUPNUM; i++)
 	{
@@ -70,28 +70,37 @@ Side AMOBA_GameGameState::IsInSide(const AActor* const pUnit)
 		{
 			if (groups_[i].heroes_.Contains(pHero))
 			{
-				return Side(i);
+				return ESide(i);
 			}
 		}
 		else if (const AMinion * const pMinion = Cast<AMinion>(pUnit))
 		{
 			if (groups_[i].minions_.Contains(pMinion))
 			{
-				return Side(i);
+				return ESide(i);
 			}
 		}
 		else if (const ATurret * const pTurret = Cast<ATurret>(pUnit))
 		{
 			if (groups_[i].turrets_.Contains(pTurret))
 			{
-				return Side(i);
+				return ESide(i);
 			}
 		}
 	}
-	return Side(3);
+	return ESide(3);
 }
 
 bool AMOBA_GameGameState::IsSameSide(const AActor* const pLhs, const AActor* const pRhs)
 {
 	return IsInSide(pLhs) == IsInSide(pRhs);
+}
+
+void AMOBA_GameGameState::Kill(AActor* pKiller, AActor* pKilled)
+{
+	uint8 Side = (uint8)IsInSide(pKiller);
+	if (Side < GROUPNUM)
+	{
+		groups_[Side].score_++;
+	}
 }

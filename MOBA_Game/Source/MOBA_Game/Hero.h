@@ -8,11 +8,13 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHeroDelegate);
 
+enum class ESide :uint8;
+
 /**<The Hero's Type Struct> HeroType
 *Struct for hero's type data.
 */
 UENUM(BlueprintType)
-enum class HeroType :uint8
+enum class EHeroType :uint8
 {
 	ADC UMETA(DisplayName = "Attack Damage Carry"),
 	APC UMETA(DisplayName = "Ability Power Carry"),
@@ -85,7 +87,7 @@ private:
 
 	/**Hero's type.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Type", meta = (AllowPrivateAccess = "true"))
-		HeroType type_;
+		EHeroType type_;
 
 	/**Hero's skill list.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Skill", meta = (AllowPrivateAccess = "true"))
@@ -94,7 +96,7 @@ private:
 public:
 	//Constucters
 	AHero();
-	AHero(HeroType, decltype(abilities_));
+	AHero(EHeroType, decltype(abilities_));
 
 	//Basic return functions.
 	FORCEINLINE float max_hp() { return max_hp_; }
@@ -166,7 +168,7 @@ public:
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
-	void Respawn();
+	void Respawn(ESide Side);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Death", meta = (AllowPrivateAccess = "true"))
 		FHeroDelegate OnDeath;
@@ -231,14 +233,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
 		int drop_exp_ = 100;
 
-	/**Unit chosed by hero. Used when hero decided to apply AD.*/
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
-		AActor* chosen_unit_ = nullptr;
-
-	/**Sphere collider triggering AD. Symbolizing AD range.*/
-	UPROPERTY(EditAnywhere, Category = Collision)
-		class USphereComponent* ad_range_;
-
 	/**Hero attack frequncy. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Attack", meta = (AllowPrivateAccess = "true"))
 		float ad_freq_;
@@ -246,5 +240,13 @@ private:
 	/**AD timer.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
 		FTimerHandle ad_timer_;
+
+	/**Unit chosed by hero. Used when hero decided to apply AD.*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+		AActor* chosen_unit_ = nullptr;
+
+	/**Sphere collider triggering AD. Symbolizing AD range.*/
+	UPROPERTY(EditAnywhere, Category = Collision)
+		class USphereComponent* ad_range_;
 
 };
