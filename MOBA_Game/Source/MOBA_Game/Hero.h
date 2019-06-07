@@ -57,12 +57,18 @@ UCLASS()
 class UAbilityDamageType :public UDamageType
 {
 	GENERATED_BODY()
+
+public:
+	UAbilityDamageType();
 };
 
 UCLASS()
 class UHealType :public UDamageType
 {
 	GENERATED_BODY()
+
+public:
+	UHealType();
 };
 
 /**<The Hero Class> AHero
@@ -140,6 +146,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
+
+	void Death();
 
 	//Hero's HP&MP recovery.
 	void Cure(float DeltaSeconds, float addtional_hp, float addtional_mp);

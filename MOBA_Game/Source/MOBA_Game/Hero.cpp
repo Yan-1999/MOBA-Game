@@ -21,9 +21,15 @@
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
 /**Damage Types:*/
-const TSubclassOf<UDamageType> ActualDamage = UDamageType::StaticClass();
-const TSubclassOf<UDamageType> AbilityDamage = UAbilityDamageType::StaticClass();
-const TSubclassOf<UDamageType> Healing = UHealType::StaticClass();
+UAbilityDamageType::UAbilityDamageType()
+{
+
+}
+
+UHealType::UHealType()
+{
+
+}
 
 //TODO: Constuctor.
 AHero::AHero()
@@ -99,7 +105,7 @@ AActor* AHero::ChoseUnit(AActor* pUnit)
 //TODO: AD function.
 float AHero::AD(AActor* pUnit, float fDamageAmount, float DegRange)
 {
-	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, ActualDamage);
+	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, UDamageType::StaticClass());
 	return fDamageAmount;
 }
 
@@ -144,23 +150,21 @@ float AHero::AP(FHeroAbility& Ability)
 		Ignores.Add(this);
 		if (Ability.aoe_)
 		{
-			UGameplayStatics::ApplyRadialDamage(this, Ability.damage_, vLocation, Ability.range_, AbilityDamage, Ignores, this);
+			UGameplayStatics::ApplyRadialDamage(this, Ability.damage_, vLocation, Ability.range_, UAbilityDamageType::StaticClass(), Ignores, this);
 		}
 		else
 		{
-			FHitResult Hit;
 			TArray<FHitResult> LinearHitResults;
 			if (APlayerController * pController = Cast<APlayerController>(GetController()))
 			{
-				pController->GetHitResultUnderCursor(ECC_Pawn, false, Hit);
-				FVector vCursor = Hit.ImpactPoint - vLocation;
+				FVector vCursor = GetCursorToWorld()->GetComponentLocation() - vLocation;
 				UKismetSystemLibrary::LineTraceMulti(this, vLocation, vLocation + (vCursor.GetSafeNormal2D()) * Ability.range_, TraceTypeQuery1, false, TArray<AActor*>(), EDrawDebugTrace::ForDuration, LinearHitResults, true, FLinearColor::Red, FLinearColor::Red);
 				for (auto i : LinearHitResults)
 				{
 					if (i.GetActor())
 					{
 						GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Blue, i.GetActor()->GetName());
-						UGameplayStatics::ApplyDamage(i.GetActor(), Ability.damage_, GetController(), this, AbilityDamage);
+						UGameplayStatics::ApplyDamage(i.GetActor(), Ability.damage_, GetController(), this, UAbilityDamageType::StaticClass());
 					}
 				}
 			}
@@ -205,12 +209,12 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 	float fActualDamage;
 	//if (ShouldTakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser))
 	{
-		if (DamageEvent.DamageTypeClass == ActualDamage)
+		if (DamageEvent.DamageTypeClass == UDamageType::StaticClass())
 		{
 			DamageAmount *= (1 - ad_resist_);
 			GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, TEXT("isAD"));
 		}
-		else if (DamageEvent.DamageTypeClass == AbilityDamage)
+		else if (DamageEvent.DamageTypeClass == UAbilityDamageType::StaticClass())
 		{
 			DamageAmount *= (1 - ap_resist_);
 			GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, TEXT("isAP"));
@@ -227,14 +231,25 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 			if (AHero * Killer = Cast<AHero>(DamageCauser))
 			{
 				Killer->Grow(drop_money_, drop_exp_);
-				OnDeath.Broadcast();
 			}
+			GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Red, TEXT("AboutDead"));
+			Death();
 			fActualDamage = cur_hp_;
 			cur_hp_ = 0.0f;
 		}
 	}
 	GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Red, FString::Printf(TEXT("%s:%f"), *this->GetName(), cur_hp_));
 	return fActualDamage;
+}
+
+void AHero::Death()
+{
+	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+	{
+		GEngine->AddOnScreenDebugMessage(9, 1.0f, FColor::Red, TEXT("IsDead"));
+		MyGameState->Leave(this);
+		OnDeath.Broadcast();
+	}
 }
 
 //TODO: Cure function.
@@ -298,4 +313,5 @@ void AHero::Tick(float DeltaSeconds)
 
 void AHero::Respawn()
 {
+	//Join(this,)
 }
