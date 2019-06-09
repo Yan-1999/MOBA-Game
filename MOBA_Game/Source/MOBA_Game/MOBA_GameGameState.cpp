@@ -8,6 +8,7 @@
 #include "Minion.h"
 #include "Monster.h"
 #include "Turret.h"
+#include "Table.h"
 
 constexpr uint8 GROUPNUM = 2;
 

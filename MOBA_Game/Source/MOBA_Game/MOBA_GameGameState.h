@@ -8,6 +8,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "MOBA_GameGameState.generated.h"
 
+class UDatable;
+
 UENUM(BlueprintType)
 enum class ESide :uint8
 {
