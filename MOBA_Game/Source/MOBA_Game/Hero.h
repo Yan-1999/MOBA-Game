@@ -6,8 +6,9 @@
 #include "MOBA_GameCharacter.h"
 #include "Hero.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHeroDelegate);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHeroDelegate);
 
+class UDamageType;
 enum class ESide :uint8;
 
 /**<The Hero's Type Struct> HeroType
@@ -90,7 +91,7 @@ private:
 		EHeroType type_;
 
 	/**Hero's skill list.*/
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Skill", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Ability", meta = (AllowPrivateAccess = "true"))
 		TArray <FHeroAbility> abilities_;
 
 public:
@@ -124,7 +125,7 @@ public:
 
 	//Hero's actural damage. Return value is damage.
 	UFUNCTION(BlueprintCallable, Category = "Damage")
-		float AD(AActor* pUnit, float fDamage = 10.0f, float DegRange = 5.0f);
+		float AD(AActor* pUnit, float fAddDamageAmount);
 
 	UFUNCTION()
 		void BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -168,10 +169,11 @@ public:
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
-	void Respawn(ESide Side);
+	void Set(ESide side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Death", meta = (AllowPrivateAccess = "true"))
-		FHeroDelegate OnDeath;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Death", meta = (AllowPrivateAccess = "true"))
+	//	FHeroDelegate OnDeath;
+
 private:
 	/**Upper bound of hero's current health. Zero value or below is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|HP&MP", meta = (AllowPrivateAccess = "true"))
@@ -237,6 +239,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Attack", meta = (AllowPrivateAccess = "true"))
 		float ad_freq_;
 
+	/**Hero attack frequncy. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Attack", meta = (AllowPrivateAccess = "true"))
+		float ad_damage_;
+
 	/**AD timer.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
 		FTimerHandle ad_timer_;
@@ -247,6 +253,6 @@ private:
 
 	/**Sphere collider triggering AD. Symbolizing AD range.*/
 	UPROPERTY(EditAnywhere, Category = Collision)
-		class USphereComponent* ad_range_;
+		class USphereComponent* ad_range_ = nullptr;
 
 };

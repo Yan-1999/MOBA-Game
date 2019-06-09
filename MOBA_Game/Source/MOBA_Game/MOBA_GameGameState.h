@@ -17,14 +17,17 @@ enum class ESide :uint8
 	OTHER = 3 UMETA(DisplayName = "OTHER")
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGroup
 {
 	GENERATED_USTRUCT_BODY()
 
 public:
 	ESide side_;
-	int score_ = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score", meta = (AllowPrivateAccess = "true"))
+		int score_ = 0;
+
 	TArray<class AHero*>heroes_;
 	TArray<class AMinion*>minions_;
 	TArray<class ATurret*>turrets_;

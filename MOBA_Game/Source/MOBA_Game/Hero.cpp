@@ -50,6 +50,10 @@ AHero::AHero()
 	//speed
 	GetCharacterMovement()->MaxWalkSpeed = speed_;
 
+	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+	{
+		//MyGameState->Join(this, Side);
+	}
 }
 
 AHero::AHero(EHeroType Type, decltype(abilities_) arrSkill)
@@ -104,10 +108,10 @@ AActor* AHero::ChoseUnit(AActor* pUnit)
 }
 
 //TODO: AD function.
-float AHero::AD(AActor* pUnit, float fDamageAmount, float DegRange)
+float AHero::AD(AActor* pUnit, float fAddDamageAmount = 0.0f)
 {
-	UGameplayStatics::ApplyDamage(pUnit, fDamageAmount, nullptr, this, UDamageType::StaticClass());
-	return fDamageAmount;
+	UGameplayStatics::ApplyDamage(pUnit, ad_damage_ + fAddDamageAmount, nullptr, this, UDamageType::StaticClass());
+	return fAddDamageAmount;
 }
 
 void AHero::BeginOverlap(UPrimitiveComponent* OverLapComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -259,6 +263,7 @@ void AHero::Death()
 			MyController->OnMyHeroDeath();
 		}
 	}
+	Destroy();
 }
 
 //TODO: Cure function.
@@ -324,16 +329,48 @@ void AHero::Tick(float DeltaSeconds)
 	}
 }
 
-void AHero::Respawn(ESide Side)
+void AHero::Set(ESide Side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money)
 {
+	type_ = Type;
+	abilities_ = arrAbilities;
+	max_hp_ = fMaxHp;
+	max_mp_ = fMaxMp;
+	re_hp_ = fReHp;
+	re_mp_ = fReMp;
+	ad_resist_ = fAdResist;
+	ap_resist_ = fApResist;
+	ad_freq_ = fAdFreq;
+	ad_damage_ = fAdDamage;
+	level_ = Level;
+	exp_ = Exp;
+	money_ = Money;
+
+	////set size of skill_
+	//abilities_.SetNum(4);
+
+	////initialize ad_range_
+	//ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
+	//ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	//ad_range_->SetSphereRadius(100.0f);
+	//ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	//ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
+	//ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
+
+	////speed
+	//GetCharacterMovement()->MaxWalkSpeed = speed_;
+	if (ad_range_)
+	{
+		GEngine->AddOnScreenDebugMessage(12, 2.0f, FColor::Magenta, TEXT("No"));
+	}
+
 	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
 	{
 		MyGameState->Join(this, Side);
-		cur_hp_ = max_hp_;
-		cur_mp_ = max_mp_;
-		for (auto i : abilities_)
-		{
-			i.cur_cd_ = i.max_cd_;
-		}
+	}
+	cur_hp_ = max_hp_;
+	cur_mp_ = max_mp_;
+	for (auto i : abilities_)
+	{
+		i.cur_cd_ = i.max_cd_;
 	}
 }

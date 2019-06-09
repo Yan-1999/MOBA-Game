@@ -4,7 +4,7 @@
 
 #include "MOBA_GamePlayerController.h"
 
-#include "Hero.h"
+#include "MOBA_GameGameMode.h"
 #include "Minion.h"
 #include "Monster.h"
 #include "Turret.h"
@@ -18,6 +18,7 @@
 #include "TimerManager.h"
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
+#include "UObject/ConstructorHelpers.h"
 
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
@@ -146,7 +147,7 @@ void AMOBA_GamePlayerController::SetPawn(APawn* InPawn)
 	{
 		if (AHero * MyHero = Cast<AHero>(InPawn))
 		{
-			MyHero->OnDeath.AddUniqueDynamic(this, &AMOBA_GamePlayerController::OnMyHeroDeath);
+			//MyHero->OnDeath.AddUniqueDynamic(this, &AMOBA_GamePlayerController::OnMyHeroDeath);
 		}
 	}
 }
@@ -154,7 +155,7 @@ void AMOBA_GamePlayerController::SetPawn(APawn* InPawn)
 void AMOBA_GamePlayerController::OnMyHeroDeath()
 {
 	GEngine->AddOnScreenDebugMessage(8, 1.0f, FColor::Red, TEXT("Dead"));
-	MyHero = Cast<AHero>(GetPawn());
+	//MyHero = Cast<AHero>(GetPawn());
 	PlayerState->bIsSpectator = true;
 	ChangeState(NAME_Spectating);
 	GetWorldTimerManager().SetTimer(respawn_timer_, this, &AMOBA_GamePlayerController::MyHeroRespawn, respawn_time_, false);
@@ -168,12 +169,23 @@ void AMOBA_GamePlayerController::MyHeroRespawn()
 	if (PlayerStarts.Num())
 	{
 		AActor* SpawnTarget = PlayerStarts[0];
-		if (MyHero)
+		FRotator StartRotation(ForceInit);
+		StartRotation.Yaw = SpawnTarget->GetActorRotation().Yaw;
+		FVector StartLocation = SpawnTarget->GetActorLocation();
+		FTransform Transform = FTransform(StartRotation, StartLocation);
+		UClass* MyHeroClass = UGameplayStatics::GetGameMode(this)->DefaultPawnClass;
+		if (MyHeroClass)
 		{
-			MyHero->Respawn(side_);
-			Possess(MyHero);
-			PlayerState->bIsSpectator = false;
-			ChangeState(NAME_Playing);
+			AHero* MyNewHero = GetWorld()->SpawnActorDeferred<AHero>(MyHeroClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+
+			if (MyNewHero)
+			{
+				MyNewHero->Set(side_, type_, abilities_, max_hp_, max_mp_, re_hp_, re_mp_, ad_resist_, ap_resist_, ad_freq_, ad_damage_, level_, exp_, money_);
+				Possess(MyNewHero);
+				PlayerState->bIsSpectator = false;
+				ChangeState(NAME_Playing);
+				UGameplayStatics::FinishSpawningActor(MyNewHero, Transform);
+			}
 		}
 	}
 }
