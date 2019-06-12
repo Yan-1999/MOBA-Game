@@ -85,6 +85,7 @@ class MOBA_GAME_API AHero : public AMOBA_GameCharacter
 	GENERATED_BODY()
 
 private:
+	ESide side_;
 
 	/**Hero's type.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Type", meta = (AllowPrivateAccess = "true"))
@@ -97,7 +98,6 @@ private:
 public:
 	//Constucters
 	AHero();
-	AHero(EHeroType, decltype(abilities_));
 
 	//Basic return functions.
 	FORCEINLINE float max_hp() { return max_hp_; }
@@ -121,7 +121,7 @@ public:
 	void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 	//Called by MOBA_GamePlayerController, edit the unit chosen by the hero.
-	AActor* ChoseUnit(AActor* pUnit);
+	AActor* ChooseUnit(AActor* pChosenUnit);
 
 	//Hero's actural damage. Return value is damage.
 	UFUNCTION(BlueprintCallable, Category = "Damage")
@@ -142,10 +142,10 @@ public:
 	void Ability_Q();
 	void Ability_W();
 	void Ability_E();
-	void Ability_R();
+	//void Ability_R();
 
-	////Override the APawn::ShouldTakeDamage(). Return if hero should take the damage.
-	//bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
+	//Override the APawn::ShouldTakeDamage(). Return if hero should take the damage.
+	bool ShouldTakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 	UFUNCTION(BlueprintCallable, Category = "Damage")
 		float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser);
@@ -169,7 +169,9 @@ public:
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
 
-	void Set(ESide side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money);
+	void Set();
+
+	//void Set(ESide side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money);
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Death", meta = (AllowPrivateAccess = "true"))
 	//	FHeroDelegate OnDeath;
@@ -207,6 +209,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Resistance", meta = (AllowPrivateAccess = "true"))
 		float ap_resist_;
 
+	/**Hero's addtional to AD. (1 - ad_resist_) is percentage of actual damage of AD. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Resistance", meta = (AllowPrivateAccess = "true"))
+		float ad_resist_add_ = 0;
+
+	/**Hero's addtional to AP. (1 - ad_resist_) is percentage of actual damage of AP. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Resistance", meta = (AllowPrivateAccess = "true"))
+		float ap_resist_add_ = 0;
+
 	/**Hero's curren Speed. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Speed", meta = (AllowPrivateAccess = "true"))
 		float speed_;
@@ -218,6 +228,10 @@ private:
 	/** Exp of Hero. Used to determine hero's level. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Level", meta = (AllowPrivateAccess = "true"))
 		int exp_ = 0;
+
+	/** Max Exp of the level. Used to determine hero's level. Minus value is INVAILD.*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Level", meta = (AllowPrivateAccess = "true"))
+		int max_exp_ = 0;
 
 	/**Money owned by hero. Minus value is INVAILD.*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))

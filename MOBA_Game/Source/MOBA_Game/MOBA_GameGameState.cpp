@@ -10,11 +10,39 @@
 #include "Turret.h"
 #include "Table.h"
 
-constexpr uint8 GROUPNUM = 2;
+#include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Engine/DataTable.h"
+
+constexpr size_t GROUP_NUM = 2;
+constexpr size_t HERO_TYPE_NUM = 5;
+constexpr size_t HERO_LEVEL_NUM = 20;
 
 AMOBA_GameGameState::AMOBA_GameGameState()
 {
-	groups_.SetNum(GROUPNUM);
+	//set array number
+	groups_.SetNum(GROUP_NUM);
+	property_table_.SetNum(HERO_TYPE_NUM);
+	for (auto& type : property_table_)
+	{
+		type.SetNum(HERO_LEVEL_NUM);
+	}
+
+	//import data tables
+
+	ConstructorHelpers::FObjectFinder<UDataTable> PropertyTable(TEXT("DataTable'/Game/TopDownCPP/Data/property.property'"));
+	ConstructorHelpers::FObjectFinder<UDataTable> ItemTable(TEXT("DataTable'/Game/TopDownCPP/Data/item.item'"));
+	ConstructorHelpers::FObjectFinder<UDataTable> AbilityTable(TEXT("DataTable'/Game/TopDownCPP/Data/ability.ability'"));
+
+	TArray<FPropertyData*>RawPropertyTable;
+	PropertyTable.Object->GetAllRows<FPropertyData>(TEXT("PropertyTable"), RawPropertyTable);
+	int Index = 0;
+	for (auto& type : property_table_)
+	{
+		for (auto& level : type)
+		{
+			level = *(RawPropertyTable[Index++]);
+		}
+	}
 }
 
 bool AMOBA_GameGameState::Join(AActor* const pUnit, ESide side)
@@ -59,13 +87,35 @@ void AMOBA_GameGameState::Leave(AActor* const pUnit)
 	}
 }
 
-ESide AMOBA_GameGameState::IsInSide(const AActor* const pUnit)
+TArray<AActor*> AMOBA_GameGameState::GetGroup(ESide Side)
+{
+	TArray<AActor*>arrGruopActors;
+	arrGruopActors.Append(groups_[(uint8)Side].heroes_);
+	arrGruopActors.Append(groups_[(uint8)Side].minions_);
+	arrGruopActors.Append(groups_[(uint8)Side].turrets_);
+	return arrGruopActors;
+}
+
+TArray<AActor*> AMOBA_GameGameState::GetGroup(AActor* pUnit)
+{
+	ESide Side = GetSide(pUnit);
+	if ((uint8)Side < GROUP_NUM)
+	{
+		return GetGroup(Side);
+	}
+	else
+	{
+		return TArray<AActor*>();
+	}
+}
+
+ESide AMOBA_GameGameState::GetSide(const AActor* const pUnit)
 {
 	if (Cast<AMonster>(pUnit))
 	{
 		return ESide(2);
 	}
-	for (size_t i = 0; i < GROUPNUM; i++)
+	for (size_t i = 0; i < GROUP_NUM; i++)
 	{
 		if (const AHero * const pHero = Cast<AHero>(pUnit))
 		{
@@ -94,14 +144,26 @@ ESide AMOBA_GameGameState::IsInSide(const AActor* const pUnit)
 
 bool AMOBA_GameGameState::IsSameSide(const AActor* const pLhs, const AActor* const pRhs)
 {
-	return IsInSide(pLhs) == IsInSide(pRhs);
+	return GetSide(pLhs) == GetSide(pRhs);
 }
 
 void AMOBA_GameGameState::Kill(AActor* pKiller, AActor* pKilled)
 {
-	uint8 Side = (uint8)IsInSide(pKiller);
-	if (Side < GROUPNUM)
+	uint8 Side = (uint8)GetSide(pKiller);
+	if (Side < GROUP_NUM)
 	{
 		groups_[Side].score_++;
+	}
+}
+
+bool AMOBA_GameGameState::IsUnit(const AActor* pUnit)
+{
+	if ((Cast<AHero>(pUnit) || Cast<AMinion>(pUnit) || Cast<AMonster>(pUnit) || Cast<ATurret>(pUnit)))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }

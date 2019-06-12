@@ -5,6 +5,7 @@
 #include "MOBA_GamePlayerController.h"
 
 #include "MOBA_GameGameMode.h"
+#include "MOBA_GameGameState.h"
 #include "Minion.h"
 #include "Monster.h"
 #include "Turret.h"
@@ -26,6 +27,19 @@ AMOBA_GamePlayerController::AMOBA_GamePlayerController()
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
+}
+
+void AMOBA_GamePlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+	if (GetPawn())
+	{
+		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "have");
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "no");
+	}
 }
 
 void AMOBA_GamePlayerController::PlayerTick(float DeltaTime)
@@ -79,11 +93,11 @@ void AMOBA_GamePlayerController::MoveToMouseCursor()
 		AActor* SelectedActor = Hit.GetActor();
 
 		//If a unit is selected, move to it.
-		if (Cast<AHero>(SelectedActor) || Cast<AMinion>(SelectedActor) || Cast<AMonster>(SelectedActor) || Cast<ATurret>(SelectedActor))
+		if ((Cast<AHero>(SelectedActor) || Cast<AMinion>(SelectedActor) || Cast<AMonster>(SelectedActor) || Cast<ATurret>(SelectedActor)))
 		{
 			if (AHero * MyHero = Cast<AHero>(GetPawn()))
 			{
-				MyHero->ChoseUnit(Hit.GetActor());
+				MyHero->ChooseUnit(SelectedActor);
 				UAIBlueprintHelperLibrary::SimpleMoveToActor(this, SelectedActor);
 			}
 		}
@@ -91,7 +105,7 @@ void AMOBA_GamePlayerController::MoveToMouseCursor()
 		{
 			if (AHero * MyHero = Cast<AHero>(GetPawn()))
 			{
-				MyHero->ChoseUnit(nullptr);
+				MyHero->ChooseUnit(nullptr);
 			}
 			// We hit something, move there
 			SetNewMoveDestination(Hit.ImpactPoint);
@@ -180,25 +194,12 @@ void AMOBA_GamePlayerController::MyHeroRespawn()
 
 			if (MyNewHero)
 			{
-				MyNewHero->Set(side_, type_, abilities_, max_hp_, max_mp_, re_hp_, re_mp_, ad_resist_, ap_resist_, ad_freq_, ad_damage_, level_, exp_, money_);
+				//MyNewHero->Set();
 				Possess(MyNewHero);
 				PlayerState->bIsSpectator = false;
 				ChangeState(NAME_Playing);
 				UGameplayStatics::FinishSpawningActor(MyNewHero, Transform);
 			}
 		}
-	}
-}
-
-void AMOBA_GamePlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-	if (GetPawn())
-	{
-		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "have");
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Black, "no");
 	}
 }
