@@ -19,11 +19,17 @@ class MOBA_GAME_API UMainMenuUserWidget : public UUserWidget
 	UPROPERTY(meta = (BindWidget))
 	class UButton* QuitGameBtn;
 
-	UPROPERTY(meta = (BindWidget))
-	class UButton* PVPBtn;
+	//UPROPERTY(meta = (BindWidget))
+	//class UButton* AIXiaoQiao;
 
-	UPROPERTY(meta = (BindWidget))
-	class UButton* AIBtn;
+	//UPROPERTY(meta = (BindWidget))
+	//class UButton* PVPXiaoQiao;
+
+	//UPROPERTY(meta = (BindWidget))
+	//class UButton* PVPBtn;
+
+	//UPROPERTY(meta = (BindWidget))
+	//class UButton* AIBtn;
 
 	virtual bool Initialize() override;
 
@@ -31,9 +37,15 @@ public:
 	UFUNCTION()
 	void OnClickedQuitGame();
 
-	UFUNCTION()
-	void OnClickedPVP();
+//	UFUNCTION()
+	//void AIXiaoQiao();
 
-	UFUNCTION()
-	void OnClickedAI();
+	//UFUNCTION()
+	//void PVPXiaoQiao();
+	
+	//UFUNCTION()
+//	void OnClickedPVP();
+
+//	UFUNCTION()
+	//void OnClickedAI();
 };

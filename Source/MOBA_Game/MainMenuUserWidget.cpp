@@ -11,7 +11,7 @@ bool UMainMenuUserWidget::Initialize()
 	{
 		QuitGameBtn->OnClicked.AddDynamic(this, &UMainMenuUserWidget::OnClickedQuitGame);
 	}
-	if (PVPBtn != nullptr)
+	/*if (PVPBtn != nullptr)
 
 	{
 		PVPBtn->OnClicked.AddDynamic(this, &UMainMenuUserWidget::OnClickedPVP);
@@ -20,7 +20,7 @@ bool UMainMenuUserWidget::Initialize()
 
 	{
 		AIBtn->OnClicked.AddDynamic(this, &UMainMenuUserWidget::OnClickedAI);
-	}
+	}*/
 	return true;
 }
 
@@ -33,7 +33,16 @@ void UMainMenuUserWidget::OnClickedQuitGame()
 	}
 }
 
-void UMainMenuUserWidget::OnClickedPVP()
+/*void UMainMenuUserWidget::PVPXiaoQiao()
+{
+}
+
+void UMainMenuUserWidget::AIXiaoQiao()
+{
+	
+}*/
+
+/*void UMainMenuUserWidget::OnClickedPVP()
 {
 	FString PVPMap = FString::Printf(TEXT("/Game/TopDownCPP/Maps/TopDownExampleMap"));//´ý¶¨
 	GetWorld()->ServerTravel(PVPMap);
@@ -43,4 +52,4 @@ void UMainMenuUserWidget::OnClickedAI()
 {
 	FString AIMap = FString::Printf(TEXT("/Game/TopDownCPP/Maps/TopDownExampleMap"));//´ý¶¨
 	GetWorld()->ServerTravel(AIMap);
-}
+}*/
