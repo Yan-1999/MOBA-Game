@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include"Hero.h"
 #include "GameFramework/Pawn.h"
 #include "Monster.generated.h"
 
@@ -23,10 +24,15 @@ public:
 	// Sets default values for this pawn's properties
 	AMonster();
 	AMonster(MonsterType type);
-
+	float distance;
+	UFUNCTION()
+	void MonsterDrop(AHero* DamageCauser);
+    UFUNCTION()
+	void Spawn();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 
 	/**Monster current HP value. Minus value or above max is INVAILD.*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|type", meta = (AllowPrivateAccess = "true"))
@@ -54,10 +60,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|drop", meta = (AllowPrivateAccess = "true"))
 		int drop_exp_;
 
+
+
 public:	
 	
 	/**Monser Attack*/
-	float attack();
+	void Attack(AActor * Target);
+
+	float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
