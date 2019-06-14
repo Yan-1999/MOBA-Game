@@ -99,6 +99,8 @@ public:
 	//Constucters
 	AHero();
 
+	void BeginPlay()override;
+
 	//Basic return functions.
 	FORCEINLINE float max_hp() { return max_hp_; }
 	FORCEINLINE float hp() { return cur_hp_; }
@@ -157,6 +159,9 @@ public:
 
 	//Hero's gain.
 	void Grow(int, int);
+
+	//Hero's inherent gain.
+	void InherentGrow();
 
 	//Buy item.
 	UFUNCTION(BlueprintCallable, Category = "Shop")
@@ -268,5 +273,7 @@ private:
 	/**Sphere collider triggering AD. Symbolizing AD range.*/
 	UPROPERTY(EditAnywhere, Category = Collision)
 		class USphereComponent* ad_range_ = nullptr;
+
+	FTimerHandle gain_timier_;
 
 };

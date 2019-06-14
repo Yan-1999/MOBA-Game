@@ -1,4 +1,4 @@
-// MOBA project group, SSE, Tonji University. Some rights reserved.
+
 // MOBA project group, SSE, Tonji University. Some rights reserved.
 
 #pragma once
@@ -56,7 +56,7 @@ public:
 	//Constructers
 	AMinion();
 
-
+	AMinion(MinionType type);
 
 	AMinion(road Road)
 	{
@@ -106,8 +106,11 @@ public:
 		void EndOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
+	UFUNCTION()
+		AActor* ChoseUnit(AActor* Target);
 
-	AMinion(MinionType type);
+	void ChosenUnitAD();
+
 
 protected:
 
@@ -120,6 +123,16 @@ protected:
 
 private:
 
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+
+		AActor* chosen_unit_ = nullptr;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
+
+		FTimerHandle attack_timer_;
 
 
 	UPROPERTY(EditAnywhere, Category = Collision)
@@ -144,7 +157,6 @@ private:
 	/**Minion attack frequncy. Minus value is INVAILD.*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|speed", meta = (AllowPrivateAccess = "true"))
-
 		float atk_freq_;
 
 	/*Minion's hp*/

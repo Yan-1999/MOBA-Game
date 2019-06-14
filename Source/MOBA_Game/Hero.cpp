@@ -22,6 +22,10 @@
 
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
+constexpr float GAIN_FREQ = 1.0f;
+constexpr int GAIN_MONEY = 10;
+constexpr int GAIN_EXP = 10;
+
 //Damage Types:
 UAbilityDamageType::UAbilityDamageType()
 {
@@ -43,7 +47,6 @@ AHero::AHero()
 		Set(MyPlayerController);
 	}
 
-
 	//set size of skill_
 	abilities_.SetNum(3);
 
@@ -54,6 +57,14 @@ AHero::AHero()
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
 
+}
+
+void AHero::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//set gain timer
+	GetWorldTimerManager().SetTimer(gain_timier_, this, &AHero::InherentGrow, GAIN_FREQ, true);
 }
 
 void AHero::SetupPlayerInputComponent(UInputComponent* InputComponent)
@@ -308,7 +319,11 @@ void AHero::Grow(int MoneyGain, int ExpGain)
 		level_++;
 		if (MyPlayerController || Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
 		{
+			MyPlayerController->exp_ = exp_;
+			MyPlayerController->level_ = level_;
+			MyPlayerController->money_ = money_;
 			Set(MyPlayerController);
+			GEngine->AddOnScreenDebugMessage(30, 0.5f, FColor::Blue, FString(TEXT("LEVEL:")) + FString::FromInt(level_));
 		}
 	}
 	if (MyPlayerController)
@@ -318,6 +333,11 @@ void AHero::Grow(int MoneyGain, int ExpGain)
 		MyPlayerController->money_ = money_;
 	}
 	return;
+}
+
+void AHero::InherentGrow()
+{
+	Grow(GAIN_MONEY, GAIN_EXP);
 }
 
 //TODO: Buy function.

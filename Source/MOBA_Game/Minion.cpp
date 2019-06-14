@@ -10,6 +10,7 @@
 #include "Perception\AISenseConfig_Sight.h"
 #include "MOBA_GameGameState.h"
 #include "GameFramework/DamageType.h"
+#include "TimerManager.h"
 #include "Engine\World.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
@@ -156,21 +157,72 @@ float AMinion::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, A
 	}
 	return DamageAmount;
 }
+
+AActor* AMinion::ChoseUnit(AActor* Target)
+{
+
+	if ((Cast<ATurret>(Target) || Cast<AMinion>(Target) || Cast<AHero>(Target)) && Target != this)
+	{
+
+		chosen_unit_ = Target;
+
+		//GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, Target->GetName());
+
+		if (Target->IsOverlappingActor(this))
+
+		{
+
+			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, atk_freq_, true);
+
+		}
+
+	}
+
+	else
+
+	{
+
+		chosen_unit_ = nullptr;
+
+		//GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, TEXT("Cancel"));
+
+		if (attack_timer_.IsValid())
+
+		{
+
+			GetWorldTimerManager().ClearTimer(attack_timer_);
+
+		}
+
+	}
+
+	return chosen_unit_;
+
+}
+
+void AMinion::ChosenUnitAD()
+{
+
+	Attack(chosen_unit_,type_);
+}
+
 void AMinion::BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (Cast<AMinion>(OtherActor) != nullptr || Cast<ATurret>(OtherActor) != nullptr || Cast<AMinion>(OtherActor) != nullptr)
 	{
-		AMinion::Attack(OtherActor, type_);
-
+		if (!attack_timer_.IsValid())
+		{
+			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, atk_freq_, true);
+		}
 	}
-
-
 }
 void AMinion::EndOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (Cast<AMinion>(OtherActor) != nullptr || Cast<ATurret>(OtherActor) != nullptr || Cast<AMinion>(OtherActor) != nullptr)
+	if (attack_timer_.IsValid())
+
 	{
-		AMinion::Attack(OtherActor, type_);
+
+		GetWorldTimerManager().ClearTimer(attack_timer_);
 
 	}
 
@@ -274,8 +326,5 @@ void AMinion::PerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	}
 
 }
-
-
-
 
 

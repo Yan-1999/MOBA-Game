@@ -133,6 +133,8 @@ private:
 
 	FTimerHandle respawn_timer_;
 
+	FTimerHandle gain_timer_;
+
 	class AHero* MyHero = nullptr;
 
 };
