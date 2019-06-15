@@ -135,6 +135,10 @@ private:
 
 	FTimerHandle gain_timer_;
 
+	friend AHero;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Money", meta = (AllowPrivateAccess = "true"))
+		int score_ = 0;
+
 	class AHero* MyHero = nullptr;
 
 };

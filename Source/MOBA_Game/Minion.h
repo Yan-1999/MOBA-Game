@@ -45,7 +45,7 @@ enum class road :uint8
 
 UCLASS()
 
-class MOBA_GAME_API AMinion : public APawn
+class MOBA_GAME_API AMinion : public ACharacter
 
 {
 

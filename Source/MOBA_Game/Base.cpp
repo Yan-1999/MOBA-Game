@@ -11,10 +11,16 @@
 #include"MOBA_GameGameState.h"
 #include "TimerManager.h"
 #include"Components\Viewport.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ABase::ABase()
 {
+	static ConstructorHelpers::FClassFinder<AMinion>PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/MyMinion"));
+	if (PlayerPawnBPClass.Class != nullptr)
+	{
+		DefaultPawnClass = PlayerPawnBPClass.Class;
+	}
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -24,7 +30,7 @@ ABase::ABase()
 void ABase::BeginPlay()
 {
 	Super::BeginPlay();
-	GetWorldTimerManager().SetTimer(spawntimer, this, &ABase::SpawnMinion, 120.0f, true, 5.0f);
+	GetWorldTimerManager().SetTimer(spawntimer, this, &ABase::SpawnMinion, 20.0f, true, 5.0f);
 
 }
 void ABase::SpawnMinion()
@@ -35,37 +41,58 @@ void ABase::SpawnMinion()
 	AMinion* Minionup;
 	AMinion* Minionmid;
 	AMinion* Miniondown;
+	FRotator StartRotation(ForceInit);
+	StartRotation.Yaw = GetActorRotation().Yaw;
+	FVector StartLocation = GetActorLocation();
+	FTransform Transform = FTransform(StartRotation, StartLocation);
+
 	for (i = 0; i < 3; i++)
 	{
-		Minionup = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
+		Minionup = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 		Minionup->type_ = MinionType::Melee;
-		//gamestate->Join(Minionmid, gamestate->IsInSide(this));
-		Minionmid = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-		Minionmid->type_ = MinionType::Melee;
-		//gamestate->Join(Minionmid, gamestate->IsInSide(this));
-		Miniondown = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-		Miniondown->type_ = MinionType::Melee;
-		//gamestate->Join(Miniondown, gamestate->IsInSide(this));
-	}
-	Minionup = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Minionup->type_ = MinionType::Remote;
-	//gamestate->Join(Minionup, gamestate->IsInSide(this));
-	Minionmid = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Minionmid->type_ = MinionType::Remote;
-	//gamestate->Join(Minionmid, gamestate->IsInSide(this));
-	Miniondown = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Miniondown->type_ = MinionType::Remote;
-	//gamestate->Join(Miniondown, gamestate->IsInSide(this));
-	Minionup = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Minionup->type_ = MinionType::Artillery;
-	//gamestate->Join(Minionup, gamestate->IsInSide(this));
-	Minionmid = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Minionmid->type_ = MinionType::Artillery;
-	//gamestate->Join(Minionmid, gamestate->IsInSide(this));
-	Miniondown = world->UWorld::SpawnActor<AMinion>(AMinion::StaticClass(), GetActorLocation(), GetActorRotation());
-	Miniondown->type_ = MinionType::Artillery;
-	//gamestate->Join(Miniondown, gamestate->IsInSide(this));
+		gamestate->Join(Minionup, side_);
+		UGameplayStatics::FinishSpawningActor(Minionup, Transform);
 
+		Minionmid = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		Minionup->type_ = MinionType::Melee;
+		gamestate->Join(Minionmid, side_);
+		UGameplayStatics::FinishSpawningActor(Minionmid, Transform);
+
+		Miniondown = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+		Minionup->type_ = MinionType::Melee;
+		gamestate->Join(Miniondown, side_);
+		UGameplayStatics::FinishSpawningActor(Miniondown, Transform);
+
+	}
+	Minionup = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Remote;
+	gamestate->Join(Minionup, side_);
+	UGameplayStatics::FinishSpawningActor(Minionup, Transform);
+
+	Minionmid = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Remote;
+	gamestate->Join(Minionmid, side_);
+	UGameplayStatics::FinishSpawningActor(Minionmid, Transform);
+
+	Miniondown = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Remote;
+	gamestate->Join(Miniondown, side_);
+	UGameplayStatics::FinishSpawningActor(Miniondown, Transform);
+
+	Minionup = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Artillery;
+	gamestate->Join(Minionup, side_);
+	UGameplayStatics::FinishSpawningActor(Minionup, Transform);
+
+	Minionmid = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Artillery;
+	gamestate->Join(Minionmid, side_);
+	UGameplayStatics::FinishSpawningActor(Minionmid, Transform);
+
+	Miniondown = world->SpawnActorDeferred<AMinion>(DefaultPawnClass, Transform, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	Minionup->type_ = MinionType::Artillery;
+	gamestate->Join(Miniondown, side_);
+	UGameplayStatics::FinishSpawningActor(Miniondown, Transform);
 }
 
 

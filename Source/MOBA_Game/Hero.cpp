@@ -262,6 +262,7 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 					MyGameState->Kill(Killer, this);
 				}
 				Killer->Grow(drop_money_, drop_exp_);
+				Killer->Score();
 			}
 			GEngine->AddOnScreenDebugMessage(10, 1.0f, FColor::Red, TEXT("AboutDead"));
 			Death();
@@ -317,7 +318,7 @@ void AHero::Grow(int MoneyGain, int ExpGain)
 	{
 		exp_ -= max_exp_;
 		level_++;
-		if (MyPlayerController || Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+		if (MyPlayerController && Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
 		{
 			MyPlayerController->exp_ = exp_;
 			MyPlayerController->level_ = level_;
@@ -432,6 +433,14 @@ void AHero::Set(AMOBA_GamePlayerController* MyPlayerController)
 	//		GEngine->AddOnScreenDebugMessage(temp++, 3.0f, FColor::Magenta, tempstr);
 	//	}
 	//}
+}
+
+void AHero::Score()
+{
+	if (AMOBA_GamePlayerController * MyPlayerController = Cast<AMOBA_GamePlayerController>(GetController()))
+	{
+		(MyPlayerController->score_)++;
+	}
 }
 
 /*void AHero::Set(ESide Side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money)

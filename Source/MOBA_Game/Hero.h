@@ -176,6 +176,8 @@ public:
 
 	void Set(class AMOBA_GamePlayerController* MyPlayerController);
 
+	void Score();
+
 	//void Set(ESide side, EHeroType Type, decltype(abilities_)& arrAbilities, float fMaxHp, float fMaxMp, float fReHp, float fReMp, float fAdResist, float fApResist, float fAdFreq, float fAdDamage, int Level, int Exp, int Money);
 
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Death", meta = (AllowPrivateAccess = "true"))

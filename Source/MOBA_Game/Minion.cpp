@@ -30,16 +30,15 @@ AMinion::AMinion()
 
 {
 	PrimaryActorTick.bCanEverTick = true;
+	//static ConstructorHelpers::FClassFinder<AMinion>PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/MOBA_Game.Minion"));
+	//if (PlayerPawnBPClass.Minion != nullptr)
+	//{
+	//	DefaultPawnClass = PlayerPawnBPClass.Minion;
+	//}
 	Sight = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Sight"));
 	Sight->OnTargetPerceptionUpdated.AddDynamic(this, &AMinion::PerceptionUpdated);
 	Stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
-	/*Sight->SightRadius = 10.0f;
-	Sight->LoseSightRadius = 3.0f;
-	Sight->PeripheralVisionAngleDegrees = 30.0f;
-	Sight->OnPerceptionUpdated;*/
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
-	//GameState->AMOBA_GameGameState::Join(this, GameState->IsInSide(this));
-
 	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
 	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 
@@ -60,7 +59,6 @@ AMinion::AMinion()
 }
 
 AMinion::AMinion(MinionType type) :type_(type)
-
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
@@ -79,6 +77,11 @@ void AMinion::BeginPlay()
 
 {
 	Super::BeginPlay();
+
+
+
+
+
 
 }
 
@@ -202,8 +205,7 @@ AActor* AMinion::ChoseUnit(AActor* Target)
 
 void AMinion::ChosenUnitAD()
 {
-
-	Attack(chosen_unit_,type_);
+	Attack(chosen_unit_, type_);
 }
 
 void AMinion::BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
