@@ -8,12 +8,14 @@
 
 enum class ESide :uint8;
 
-enum class ELane :uint8
-{
-	UP UMETA(DisplayName = "up"),
-	MID UMETA(DisplayName = "mid"),
-	DOWN UMETA(DisplayName = "down")
-};
+//enum class ELane :uint8
+//{
+//	UP UMETA(DisplayName = "up"),
+//	MID UMETA(DisplayName = "mid"),
+//	DOWN UMETA(DisplayName = "down")
+//};
+
+enum class road :uint8;
 
 USTRUCT(BlueprintType)
 struct FIndex
@@ -21,7 +23,7 @@ struct FIndex
 	GENERATED_USTRUCT_BODY()
 
 public:
-	ELane road;
+	road ROAD;
 	int order;
 	ESide side;
 };
@@ -35,10 +37,14 @@ public:
 	// Sets default values for this actor's properties
 	ATurret();
 
+	ATurret(FIndex index);
+
 	void Attack(AActor* Target);
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	FIndex index_;
 
 
 	UPROPERTY(EditAnywhere, Category = Collision)
@@ -46,9 +52,9 @@ public:
 
 	UFUNCTION()
 		float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser);
-	
+
 	UFUNCTION()
-	AActor * ChoseUnit(AActor * Target);
+		AActor* ChoseUnit(AActor* Target);
 
 	UFUNCTION()
 		void BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -74,7 +80,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
 
 		FTimerHandle attack_timer_;
-	FIndex index_;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Side", meta = (AllowPrivateAccess = "true"))
+
+		ESide side_;
+
 	//turret's health
 	const float max_hp_ = 6000;
 	float cur_hp_ = 6000;

@@ -74,7 +74,7 @@ public:
 
 	FORCEINLINE float speed() { return speed_; }
 
-	FORCEINLINE float atk_freq() { return atk_freq_; }
+	FORCEINLINE float atk_freq() { return attack_freq_; }
 
 
 
@@ -109,8 +109,9 @@ public:
 	UFUNCTION()
 		AActor* ChoseUnit(AActor* Target);
 
-	void ChosenUnitAD();
 
+	UFUNCTION()
+		void ChosenUnitAD();
 
 protected:
 
@@ -123,7 +124,9 @@ protected:
 
 private:
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Properties|Attack", meta = (AllowPrivateAccess = "true"))
 
+		float attack_freq_;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attack", meta = (AllowPrivateAccess = "true"))
 
@@ -157,7 +160,8 @@ private:
 	/**Minion attack frequncy. Minus value is INVAILD.*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|speed", meta = (AllowPrivateAccess = "true"))
-		float atk_freq_;
+
+		float atk_freq_ = 2.0f;
 
 	/*Minion's hp*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Properties|speed", meta = (AllowPrivateAccess = "true"))

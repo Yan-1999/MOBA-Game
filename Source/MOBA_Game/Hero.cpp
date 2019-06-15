@@ -301,7 +301,7 @@ void AHero::Cure(float DeltaSeconds, float addtional_hp = 0.0f, float addtional_
 	}
 	if (cur_mp_ < max_mp_)
 	{
-		cur_hp_ += DeltaSeconds * (re_hp_ + addtional_hp);
+		cur_mp_ += DeltaSeconds * (re_mp_ + addtional_mp);
 		if (cur_mp_ > max_mp_)
 		{
 			cur_mp_ = max_mp_;

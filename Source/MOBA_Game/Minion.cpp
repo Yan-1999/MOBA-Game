@@ -11,6 +11,7 @@
 #include "MOBA_GameGameState.h"
 #include "GameFramework/DamageType.h"
 #include "TimerManager.h"
+#include"Engine\Engine.h"
 #include "Engine\World.h"
 #include "Runtime/Engine/Classes/Components/CapsuleComponent.h"
 #include "Runtime/Engine/Classes/Components/DecalComponent.h"
@@ -30,15 +31,16 @@ AMinion::AMinion()
 
 {
 	PrimaryActorTick.bCanEverTick = true;
-	//static ConstructorHelpers::FClassFinder<AMinion>PlayerPawnBPClass(TEXT("/Game/TopDownCPP/Blueprints/MOBA_Game.Minion"));
-	//if (PlayerPawnBPClass.Minion != nullptr)
-	//{
-	//	DefaultPawnClass = PlayerPawnBPClass.Minion;
-	//}
 	Sight = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Sight"));
 	Sight->OnTargetPerceptionUpdated.AddDynamic(this, &AMinion::PerceptionUpdated);
 	Stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
+	/*Sight->SightRadius = 10.0f;
+	Sight->LoseSightRadius = 3.0f;
+	Sight->PeripheralVisionAngleDegrees = 30.0f;
+	Sight->OnPerceptionUpdated;*/
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
+	//GameState->AMOBA_GameGameState::Join(this, GameState->IsInSide(this));
+
 	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
 	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 
@@ -59,6 +61,7 @@ AMinion::AMinion()
 }
 
 AMinion::AMinion(MinionType type) :type_(type)
+
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
@@ -70,18 +73,12 @@ AMinion::AMinion(MinionType type) :type_(type)
 	}
 }
 
-
 // Called when the game starts or when spawned
 
 void AMinion::BeginPlay()
 
 {
 	Super::BeginPlay();
-
-
-
-
-
 
 }
 
@@ -91,9 +88,9 @@ void AMinion::Attack(AActor* Target, MinionType type)
 	float damage = 0.0f;
 	float attackrange = 15;
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
-	UDamageType DamageType;
-	TSubclassOf<UDamageType> const ValidDamageTypeClass/* = DamageType? DamageType : TSubclassOf<UDamageType>(UDamageType::StaticClass())*/;
-	FDamageEvent DamageEvent(ValidDamageTypeClass);
+	//UDamageType DamageType;
+	//TSubclassOf<UDamageType> const ValidDamageTypeClass/* = DamageType? DamageType : TSubclassOf<UDamageType>(UDamageType::StaticClass())*/;
+	FDamageEvent DamageEvent(UDamageType::StaticClass());
 	if (!GameState->IsSameSide(Target, this))
 	{
 		FVector v1 = Target->GetActorLocation();
@@ -160,35 +157,34 @@ float AMinion::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, A
 	}
 	return DamageAmount;
 }
-
+void AMinion::ChosenUnitAD()
+{
+	Attack(chosen_unit_, type_);
+}
 AActor* AMinion::ChoseUnit(AActor* Target)
 {
 
-	if ((Cast<ATurret>(Target) || Cast<AMinion>(Target) || Cast<AHero>(Target)) && Target != this)
+	if (((Cast<ATurret>(Target) || Cast<AMinion>(Target) || Cast<AHero>(Target)) && Target != this))
+
 	{
 
 		chosen_unit_ = Target;
 
-		//GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, Target->GetName());
+		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, Target->GetName());
 
 		if (Target->IsOverlappingActor(this))
 
 		{
 
-			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, atk_freq_, true);
+			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, attack_freq_, true);
 
 		}
 
 	}
-
 	else
-
 	{
-
 		chosen_unit_ = nullptr;
-
-		//GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, TEXT("Cancel"));
-
+		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, TEXT("Cancel"));
 		if (attack_timer_.IsValid())
 
 		{
@@ -203,18 +199,13 @@ AActor* AMinion::ChoseUnit(AActor* Target)
 
 }
 
-void AMinion::ChosenUnitAD()
-{
-	Attack(chosen_unit_, type_);
-}
-
 void AMinion::BeginOverlap(class UPrimitiveComponent* OverLapComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (Cast<AMinion>(OtherActor) != nullptr || Cast<ATurret>(OtherActor) != nullptr || Cast<AMinion>(OtherActor) != nullptr)
 	{
 		if (!attack_timer_.IsValid())
 		{
-			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, atk_freq_, true);
+			GetWorldTimerManager().SetTimer(attack_timer_, this, &AMinion::ChosenUnitAD, attack_freq_, true);
 		}
 	}
 }

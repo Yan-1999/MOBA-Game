@@ -173,8 +173,8 @@ public:
 
 	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
-
-	void Set(class AMOBA_GamePlayerController* MyPlayerController);
+	UFUNCTION(BlueprintCallable, Category = "Shop")
+		void Set(class AMOBA_GamePlayerController* MyPlayerController);
 
 	void Score();
 

@@ -27,6 +27,10 @@ ATurret::ATurret()
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &ATurret::EndOverlap);
 	ad_range_->SetSphereRadius(10.0f);
 }
+ATurret::ATurret(FIndex index)
+{
+
+}
 
 //TODO:Turrent's AD
 void ATurret::Attack(AActor* Target)
