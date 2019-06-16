@@ -24,7 +24,7 @@
 #include "Runtime/Engine/Classes/Engine/Engine.h"
 
 AMOBA_GamePlayerController::AMOBA_GamePlayerController()
-	:side_(ESide::NEUTRAL), type_(EHeroType::ADC)
+	:side_(ESide::RED), type_(EHeroType::ADC)
 {
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
