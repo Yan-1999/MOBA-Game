@@ -41,10 +41,12 @@ AMinion::AMinion()
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
 	//GameState->AMOBA_GameGameState::Join(this, GameState->IsInSide(this));
 
-	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
-	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 
+	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ad_range_->SetupAttachment(RootComponent);
+	//ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+
 
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AMinion::BeginOverlap);
 
@@ -88,9 +90,9 @@ void AMinion::Attack(AActor* Target, MinionType type)
 	float damage = 0.0f;
 	float attackrange = 15;
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
-	//UDamageType DamageType;
-	//TSubclassOf<UDamageType> const ValidDamageTypeClass/* = DamageType? DamageType : TSubclassOf<UDamageType>(UDamageType::StaticClass())*/;
-	FDamageEvent DamageEvent(UDamageType::StaticClass());
+	/*UDamageType DamageType;
+	TSubclassOf<UDamageType> const ValidDamageTypeClas;
+	FDamageEvent DamageEvent();*/
 	if (!GameState->IsSameSide(Target, this))
 	{
 		FVector v1 = Target->GetActorLocation();
@@ -100,31 +102,101 @@ void AMinion::Attack(AActor* Target, MinionType type)
 		float temp = FVector::DotProduct(v, w);
 		float distance = FVector::Distance(Target->GetActorLocation(), this->GetActorLocation());
 		float Range = acos(temp / distance);
-		if (type == MinionType::Melee)
+		if (Cast<ATurret>(Target))
 		{
+			ATurret* turret = Cast<ATurret>(Target);
 
-			if (Range < 15 && distance <= 5)
+			if (type == MinionType::Melee)
 			{
-				damage = 200.0;
-				Target->TakeDamage(damage, DamageEvent, nullptr, this);
+
+				if (Range < 15 && distance <= 5)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(turret, damage, nullptr, this, UDamageType::StaticClass());
+				}
+			}
+			else if (type == MinionType::Remote)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(turret, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
+			}
+			else if (type == MinionType::Artillery)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 15.0;
+					UGameplayStatics::ApplyDamage(turret, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
 			}
 		}
-		else if (type == MinionType::Remote)
+		if (Cast<AMinion>(Target))
 		{
-			if (Range < 15 && distance <= 10)
-			{
-				damage = 200.0;
-				Target->TakeDamage(damage, DamageEvent, nullptr, this);
+			AMinion* minion = Cast<AMinion>(Target);
 
+			if (type == MinionType::Melee)
+			{
+
+				if (Range < 15 && distance <= 5)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(minion, damage, nullptr, this, UDamageType::StaticClass());
+				}
+			}
+			else if (type == MinionType::Remote)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(minion, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
+			}
+			else if (type == MinionType::Artillery)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 15.0;
+					UGameplayStatics::ApplyDamage(minion, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
 			}
 		}
-		else if (type == MinionType::Artillery)
+		if (Cast<AHero>(Target))
 		{
-			if (Range < 15 && distance <= 10)
-			{
-				damage = 200.0;
-				Target->TakeDamage(damage, DamageEvent, nullptr, this);
+			AHero* hero = Cast<AHero>(Target);
 
+			if (type == MinionType::Melee)
+			{
+
+				if (Range < 15 && distance <= 5)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(hero, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
+			}
+			else if (type == MinionType::Remote)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 10.0;
+					UGameplayStatics::ApplyDamage(hero, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
+			}
+			else if (type == MinionType::Artillery)
+			{
+				if (Range < 15 && distance <= 10)
+				{
+					damage = 15.0;
+					UGameplayStatics::ApplyDamage(hero, damage, nullptr, this, UDamageType::StaticClass());
+
+				}
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 
 #include "MOBA_GameGameState.h"
 
+#include "Base.h"
 #include "Hero.h"
 #include "Minion.h"
 #include "Monster.h"
@@ -27,6 +28,12 @@ AMOBA_GameGameState::AMOBA_GameGameState()
 		type.SetNum(HERO_LEVEL_NUM);
 	}
 
+	ability_table_.SetNum(HERO_TYPE_NUM);
+	for (auto& type : ability_table_)
+	{
+		type.SetNum(3);
+	}
+
 	//import data tables
 
 	ConstructorHelpers::FObjectFinder<UDataTable> PropertyTable(TEXT("DataTable'/Game/TopDownCPP/Data/property.property'"));
@@ -43,6 +50,17 @@ AMOBA_GameGameState::AMOBA_GameGameState()
 			level = *(RawPropertyTable[Index++]);
 		}
 	}
+
+	TArray<FAbilityData*>RawAbilityTable;
+	AbilityTable.Object->GetAllRows<FAbilityData>(TEXT("PropertyTable"), RawAbilityTable);
+	Index = 0;
+	for (auto& type : ability_table_)
+	{
+		for (auto& level : type)
+		{
+			level = *(RawAbilityTable[Index++]);
+		}
+	}
 }
 
 bool AMOBA_GameGameState::Join(AActor* const pUnit, ESide side)
@@ -50,6 +68,11 @@ bool AMOBA_GameGameState::Join(AActor* const pUnit, ESide side)
 	if (side != ESide::RED || side != ESide::BLUE)
 	{
 		return false;
+	}
+	if (ABase * const pBase = Cast<ABase>(pUnit))
+	{
+		groups_[(uint8)side].base_ = pBase;
+		return true;
 	}
 	if (AHero * const pHero = Cast<AHero>(pUnit))
 	{
@@ -113,7 +136,7 @@ TArray<AActor*> AMOBA_GameGameState::GetGroup(AActor* pUnit)
 	}
 }
 
-ESide AMOBA_GameGameState::GetSide(const AActor* const pUnit)
+ESide AMOBA_GameGameState::GetSide(AActor* pUnit)
 {
 	if (Cast<AMonster>(pUnit))
 	{
@@ -121,6 +144,13 @@ ESide AMOBA_GameGameState::GetSide(const AActor* const pUnit)
 	}
 	for (size_t i = 0; i < GROUP_NUM; i++)
 	{
+		if (ABase * pBase = Cast<ABase>(pUnit))
+		{
+			if (groups_[i].base_ == pBase)
+			{
+				return ESide(i);
+			}
+		}
 		if (const AHero * const pHero = Cast<AHero>(pUnit))
 		{
 			if (groups_[i].heroes_.Contains(pHero))
@@ -146,7 +176,7 @@ ESide AMOBA_GameGameState::GetSide(const AActor* const pUnit)
 	return ESide(3);
 }
 
-bool AMOBA_GameGameState::IsSameSide(const AActor* const pLhs, const AActor* const pRhs)
+bool AMOBA_GameGameState::IsSameSide(AActor* pLhs, AActor* pRhs)
 {
 	return GetSide(pLhs) == GetSide(pRhs);
 }

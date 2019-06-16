@@ -51,9 +51,10 @@ AHero::AHero()
 	abilities_.SetNum(3);
 
 	//initialize ad_range_
-	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
-	ad_range_->SetSphereRadius(100.0f);
+	//ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	ad_range_->SetSphereRadius(250.0f);
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ad_range_->SetupAttachment(RootComponent);
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AHero::BeginOverlap);
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &AHero::EndOverlap);
 
@@ -78,14 +79,14 @@ void AHero::SetupPlayerInputComponent(UInputComponent* InputComponent)
 
 AActor* AHero::ChooseUnit(AActor* pUnit)
 {
-	if (AMOBA_GameGameState::IsUnit(pUnit) && pUnit != this)
+	if ((Cast<AHero>(pUnit) || Cast<AMinion>(pUnit) || Cast<AMonster>(pUnit) || Cast<ATurret>(pUnit)) && pUnit != this)
 	{
 		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, pUnit->GetName());
 		AMOBA_GameGameState* MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
-		if (MyGameState && MyGameState->IsSameSide(this, pUnit))
-		{
-			goto ELSE;
-		}
+		//if (MyGameState && MyGameState->IsSameSide(this, pUnit))
+		//{
+		//	goto ELSE;
+		//}
 		chosen_unit_ = pUnit;
 		if (pUnit->IsOverlappingActor(this))
 		{
@@ -94,7 +95,6 @@ AActor* AHero::ChooseUnit(AActor* pUnit)
 	}
 	else
 	{
-	ELSE:
 		chosen_unit_ = nullptr;
 		GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, TEXT("Cancel"));
 		if (ad_timer_.IsValid())
@@ -107,6 +107,8 @@ AActor* AHero::ChooseUnit(AActor* pUnit)
 
 float AHero::AD(AActor* pUnit, float fAddDamageAmount = 0.0f)
 {
+	//GEngine->AddOnScreenDebugMessage(41, 1.0f, FColor::Blue, TEXT("ad"));
+	//GEngine->AddOnScreenDebugMessage(41, 1.0f, FColor::Blue, pUnit->GetName());
 	UGameplayStatics::ApplyDamage(pUnit, ad_damage_ + fAddDamageAmount, nullptr, this, UDamageType::StaticClass());
 	return fAddDamageAmount;
 }
@@ -391,6 +393,15 @@ void AHero::Set(AMOBA_GamePlayerController* MyPlayerController)
 	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
 	{
 		MyGameState->Join(this, side_);
+		for (size_t i = 0; i < 3; i++)
+		{
+			abilities_[i].aoe_ = MyGameState->ability_table()[(uint8)type_][i].AOE;
+			abilities_[i].damage_ = MyGameState->ability_table()[(uint8)type_][i].DAMAGE;
+			abilities_[i].max_cd_ = MyGameState->ability_table()[(uint8)type_][i].MAX_CD;
+			abilities_[i].mp_needed_ = MyGameState->ability_table()[(uint8)type_][i].MP_NEEDED;
+			abilities_[i].range_ = MyGameState->ability_table()[(uint8)type_][i].RANGE;
+			abilities_[i].stablize_ = MyGameState->ability_table()[(uint8)type_][i].STABILIZE;
+		}
 		max_exp_ = MyGameState->property_table()[(uint8)type_][level_].EXP;
 		max_hp_ = MyGameState->property_table()[(uint8)type_][level_].MAX_HP;
 		max_mp_ = MyGameState->property_table()[(uint8)type_][level_].MAX_MP;

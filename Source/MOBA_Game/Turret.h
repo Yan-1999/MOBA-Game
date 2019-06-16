@@ -81,13 +81,14 @@ private:
 
 		FTimerHandle attack_timer_;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Side", meta = (AllowPrivateAccess = "true"))
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Side", meta = (AllowPrivateAccess = "true"))
 		ESide side_;
 
 	//turret's health
-	const float max_hp_ = 6000;
-	float cur_hp_ = 6000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Side", meta = (AllowPrivateAccess = "true"))
+		float max_hp_ = 6000;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Side", meta = (AllowPrivateAccess = "true"))
+		float cur_hp_ = 6000;
 	const float damage_ = 300;
 	const float attackrange_ = 300;
 	const int drop_money_ = 300;

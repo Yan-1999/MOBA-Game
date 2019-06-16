@@ -21,11 +21,11 @@ ATurret::ATurret()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
-	ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	ad_range_->SetSphereRadius(10.0f);
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ad_range_->SetupAttachment(RootComponent);
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &ATurret::BeginOverlap);
 	ad_range_->OnComponentEndOverlap.AddDynamic(this, &ATurret::EndOverlap);
-	ad_range_->SetSphereRadius(10.0f);
 }
 ATurret::ATurret(FIndex index)
 {

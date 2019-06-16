@@ -29,6 +29,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Score", meta = (AllowPrivateAccess = "true"))
 		int score_ = 0;
 
+	class ABase* base_;
 	TArray<class AHero*>heroes_;
 	TArray<class AMinion*>minions_;
 	TArray<class ATurret*>turrets_;
@@ -57,9 +58,9 @@ public:
 
 	TArray<AActor*> GetGroup(AActor* pUnit);
 
-	ESide GetSide(const AActor* const pUnit);
+	ESide GetSide(AActor* pUnit);
 
-	bool IsSameSide(const AActor* const pLhs, const AActor* const pRhs);
+	bool IsSameSide(AActor* pLhs, AActor* pRhs);
 
 	void Kill(AActor* pKiller, AActor* pKilled);
 
