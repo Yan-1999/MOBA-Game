@@ -66,6 +66,10 @@ void AHero::BeginPlay()
 
 	//set gain timer
 	GetWorldTimerManager().SetTimer(gain_timier_, this, &AHero::InherentGrow, GAIN_FREQ, true);
+	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+	{
+		MyGameState->Join(this, ESide::RED);
+	}
 }
 
 void AHero::SetupPlayerInputComponent(UInputComponent* InputComponent)
@@ -187,9 +191,9 @@ float AHero::AP(FHeroAbility& Ability)
 					}
 				}
 			}
-			cur_mp_ -= Ability.mp_needed_;
-			Ability.cur_cd_ = Ability.max_cd_;
 		}
+		cur_mp_ -= Ability.mp_needed_;
+		Ability.cur_cd_ = Ability.max_cd_;
 		return fDamageAmount;
 	}
 }

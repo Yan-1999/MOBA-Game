@@ -50,7 +50,8 @@ public:
 	FORCEINLINE auto ability_table() { return ability_table_; }
 	FORCEINLINE auto item_table() { return item_table_; }
 
-	bool Join(AActor* const pUnit, ESide side);
+	UFUNCTION(BlueprintCallable)
+		bool Join(AActor* const pUnit, ESide side);
 
 	void Leave(AActor* const pUnit);
 
