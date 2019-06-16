@@ -13,7 +13,6 @@
 
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Engine/DataTable.h"
-#include "Runtime/Engine/Classes/Engine/Engine.h"
 
 constexpr size_t GROUP_NUM = 2;
 constexpr size_t HERO_TYPE_NUM = 5;
@@ -188,17 +187,6 @@ void AMOBA_GameGameState::Kill(AActor* pKiller, AActor* pKilled)
 	if (Side < GROUP_NUM)
 	{
 		groups_[Side].score_++;
-	}
-}
-
-void AMOBA_GameGameState::Kill(AActor* pKiller)
-{
-	uint8 Side = (uint8)GetSide(pKiller);
-	GEngine->AddOnScreenDebugMessage(43, 5.0f, FColor::Yellow, TEXT("D"));
-	if (Side < GROUP_NUM)
-	{
-		groups_[Side].score_++;
-		GEngine->AddOnScreenDebugMessage(42, 5.0f, FColor::Yellow, TEXT("Score"));
 	}
 }
 

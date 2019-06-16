@@ -31,21 +31,17 @@ AMinion::AMinion()
 
 {
 	PrimaryActorTick.bCanEverTick = true;
-	Sight = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Sight"));
-	Sight->OnTargetPerceptionUpdated.AddDynamic(this, &AMinion::PerceptionUpdated);
-	Stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
-	/*Sight->SightRadius = 10.0f;
-	Sight->LoseSightRadius = 3.0f;
-	Sight->PeripheralVisionAngleDegrees = 30.0f;
-	Sight->OnPerceptionUpdated;*/
+
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));
-	//GameState->AMOBA_GameGameState::Join(this, GameState->IsInSide(this));
+	Sight = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("Sight"));
 
+	Sight->OnTargetPerceptionUpdated.AddDynamic(this, &AMinion::PerceptionUpdated);
 
+	Stimulus = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Stimulus"));
 	ad_range_ = CreateDefaultSubobject<USphereComponent>(TEXT("range"));
 	ad_range_->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	ad_range_->SetupAttachment(RootComponent);
-	//ad_range_->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+	
 
 
 	ad_range_->OnComponentBeginOverlap.AddDynamic(this, &AMinion::BeginOverlap);
@@ -308,38 +304,6 @@ void AMinion::Tick(float DeltaTime)
 
 }
 
-//判断是否是英雄，以及判断英雄阵营，后期修改。
-
-//TODO:
-/*bool AMinion::minDistance(AActor*SeenPawn) const
-
-{
-	if (this!= nullptr)
-	{
-		if (Cast<AMinion>(SeenPawn)!=nullptr||Cast<ATurret>(SeenPawn)!=nullptr|| Cast<AHero>(SeenPawn) != nullptr)
-		{
-			FVector TargetLocation = SeenPawn->GetActorLocation();
-			FVector myLocation= GetActorLocation();
-			float Dis = (TargetLocation - myLocation).Size();
-			if (Dis < 2)
-			{
-				return false;
-			}
-			else
-			{
-				UNavigationSystemV1::findwaytoToLocationSynchronously(SeenPawn,GetActorLocation(), SeenPawn->GetActorLocation());
-				return true;
-			}
-		}
-
-	}
-	else
-	{
-		return false;
-	}
-}
-
-//TODO:when the minion see another minion,attack.then turret,then a hero.when nothing insight,keepgoing.*/
 void AMinion::PerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	AMOBA_GameGameState* GameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this));

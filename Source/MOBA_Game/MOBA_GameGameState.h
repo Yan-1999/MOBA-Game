@@ -65,8 +65,6 @@ public:
 
 	void Kill(AActor* pKiller, AActor* pKilled);
 
-	void Kill(AActor* pKiller);
-
 	static bool IsUnit(const AActor* pUnit);
 
 private:

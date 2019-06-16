@@ -66,6 +66,10 @@ void AHero::BeginPlay()
 
 	//set gain timer
 	GetWorldTimerManager().SetTimer(gain_timier_, this, &AHero::InherentGrow, GAIN_FREQ, true);
+	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+	{
+		MyGameState->Join(this, ESide::RED);
+	}
 }
 
 void AHero::SetupPlayerInputComponent(UInputComponent* InputComponent)
@@ -259,10 +263,10 @@ float AHero::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, ACo
 		{
 			if (AHero * Killer = Cast<AHero>(DamageCauser))
 			{
-				//if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
-				//{
-				//	MyGameState->Kill(Killer, this);
-				//}
+				if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
+				{
+					MyGameState->Kill(Killer, this);
+				}
 				Killer->Grow(drop_money_, drop_exp_);
 				Killer->Score();
 			}
@@ -451,10 +455,6 @@ void AHero::Score()
 	if (AMOBA_GamePlayerController * MyPlayerController = Cast<AMOBA_GamePlayerController>(GetController()))
 	{
 		(MyPlayerController->score_)++;
-	}
-	if (AMOBA_GameGameState * MyGameState = Cast<AMOBA_GameGameState>(UGameplayStatics::GetGameState(this)))
-	{
-		MyGameState->Kill(this);
 	}
 }
 
